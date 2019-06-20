@@ -832,8 +832,8 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, DEVICE, topx=100, EA
             
     # WITHOUT GENRES
             # Make a pred with genres removed from inputs 
-            inputs[1][0] = torch.ones(inputs[0].size(0), dtype=torch.uint8)
-            inputs[1][1] = torch.zeros(inputs[0].size(0), 48272)
+            inputs[1][0] = torch.ones(inputs[0].size(0), dtype=torch.uint8).to(DEVICE)
+            inputs[1][1] = torch.zeros(inputs[0].size(0), 48272).to(DEVICE)
             pred = model(inputs)  
             
             # LOSS - Using only movies to be montionned that were rated
