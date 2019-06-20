@@ -10,14 +10,7 @@ All constants for data pre-processing
 @author: nicholas
 """
 
-import os
-import sys
 import numpy as np
-
-######### SYS.PATH to specific modules to add (FOR CEDAR)
-#if os.path.expanduser('~/ReDial/AE/') not in sys.path: sys.path.insert(0, os.path.expanduser('~/ReDial/AE/'))
-#if os.path.expanduser('~/ReDial') not in sys.path: sys.path.insert(0, os.path.expanduser('~/ReDial/'))
-
 
 
 # Number of movies treated in total (MovieLens + ReDial)
@@ -45,7 +38,7 @@ ML_genres = ['animation', 'adventure', 'drama', 'thriller', 'action', 'fantasy',
 # List of all UiD of movies mentioned in ReDial
 
 # Get the dict of conversions
-ReDiD2UiD = np.load(os.path.expanduser('~/ReDial/DataProcessed/ReDID2uID.npy')).item()
+ReDiD2UiD = np.load('./Data/ReDID2uID.npy').item()
 
 l_ReDUiD = []
 for value in ReDiD2UiD.values():
