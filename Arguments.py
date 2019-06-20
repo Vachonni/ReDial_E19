@@ -66,6 +66,9 @@ parser.add_argument('--topx', type=int, metavar='', default=100, \
 
 
 # Others
+parser.add_argument('--orion', type=bool, metavar='', default=False, \
+                    help="Run Orion - Hyper Parameter search")
+
 parser.add_argument('--DEVICE', type=str, metavar='', default='cuda', choices=['cuda', 'cpu'], \
                     help="Type of machine to run on")
 

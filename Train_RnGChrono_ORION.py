@@ -24,8 +24,9 @@ import AutoEncoders
 import Utils
 import Settings 
 from Arguments import args 
-## To use Orion
-#from orion.client import report_results
+# To use Orion
+if args.orion:
+    from orion.client import report_results
 
 
 # Print agrs that will be used
@@ -327,26 +328,27 @@ print("\n\n\n\n\n\n\n")
 
 
 # For Orion, print results (MongoDB,...)
-#report_results([dict(
-#    name='valid_pred_rank_liked',
-#    type='objective',
-#    value=pred_rank_liked),
-#    dict(
-#    name='valid_pred_rank_DISliked',
-#    type='constraint',
-#    value=pred_rank_disliked),
-#    dict(
-#    name='valid_pred_error',
-#    type='constraint',
-#    value=pred_err),
-#    dict(
-#    name='valid_reconst_error',
-#    type='constraint',
-#    value=valid_err),
-#    dict(
-#    name='g',
-#    type='constraint',
-#    value=model.g.data.item())])
+if args.orion:
+    report_results([dict(
+        name='valid_pred_rank_liked',
+        type='objective',
+        value=pred_rank_liked),
+        dict(
+        name='valid_pred_rank_DISliked',
+        type='constraint',
+        value=pred_rank_disliked),
+        dict(
+        name='valid_pred_error',
+        type='constraint',
+        value=pred_err),
+        dict(
+        name='valid_reconst_error',
+        type='constraint',
+        value=valid_err),
+        dict(
+        name='g',
+        type='constraint',
+        value=model.g.data.item())])
 
      
 #%%
