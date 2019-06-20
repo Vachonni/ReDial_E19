@@ -1,0 +1,6 @@
+algorithms: 
+    BayesianOptimizer:
+        n_initial_points: 10
+        strategy: cl_min
+        acq_func: gp_hedge
+        alpha: 1.0e-10
