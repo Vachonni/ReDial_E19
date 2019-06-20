@@ -11,7 +11,6 @@ Training AE Recommender
 """
 
 ######## IMPORTS
-import os
 import sys
 import json
 import torch
@@ -55,22 +54,22 @@ else:
     
 print('******* Creating Model *******')      
 # Create basic model
-#model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type='relu', \
-#                                                is_constrained=False, dp_drop_prob=0.0, \
-#                                                last_layer_activations=False,\
-#                                                lla = args.last_layer_activation).to(args.DEVICE)
+model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type='relu', \
+                                                is_constrained=False, dp_drop_prob=0.0, \
+                                                last_layer_activations=False,\
+                                                lla = args.last_layer_activation).to(args.DEVICE)
 
 
 """ TRYING PRE ML """
 print('******* Load Pre-Trained Model *******')      
-# Load model pre-trained on ML
-model_pre_ML = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type='relu', \
-                                                  is_constrained=False, dp_drop_prob=0.0, \
-                                                  last_layer_activations=False).to(args.DEVICE)
-checkpoint = torch.load(os.path.expanduser('~/ReDial/AE/Results/AETrained_MLasReDial_MLR.pth'),\
-                        map_location=args.DEVICE)
-model_pre_ML.load_state_dict(checkpoint['state_dict'])
-model_base = model_pre_ML
+## Load model pre-trained on ML
+#model_pre_ML = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type='relu', \
+#                                                  is_constrained=False, dp_drop_prob=0.0, \
+#                                                  last_layer_activations=False).to(args.DEVICE)
+#checkpoint = torch.load(os.path.expanduser('~/ReDial/AE/Results/AETrained_MLasReDial_MLR.pth'),\
+#                        map_location=args.DEVICE)
+#model_pre_ML.load_state_dict(checkpoint['state_dict'])
+#model_base = model_pre_ML
 
 
 print('******* Creating Genres Wrapper OR New Model with Genres on Pre Trained Model *******')      
