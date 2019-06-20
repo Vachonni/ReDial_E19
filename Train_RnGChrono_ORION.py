@@ -362,6 +362,9 @@ plt.show()
 #%%
 
 for batch_idx, (masks, inputs, targets) in enumerate(train_loader):
+    inputs[0] = inputs[0].to(args.DEVICE)
+    inputs[1][0] = inputs[1][0].to(args.DEVICE)
+    inputs[1][1] = inputs[1][1].to(args.DEVICE)
     pred = model(inputs)
     if model.model_pre.lla == 'none':
         pred = torch.nn.Sigmoid()(pred)
