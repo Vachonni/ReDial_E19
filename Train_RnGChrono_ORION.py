@@ -136,7 +136,7 @@ avrg_ranks_epoch = []
 
 pred_mean_values = []
 
-old_g = torch.zeros(1)
+old_g = torch.zeros(1).to(args.DEVICE)
 
 
 
