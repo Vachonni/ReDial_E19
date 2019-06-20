@@ -371,7 +371,7 @@ for batch_idx, (masks, inputs, targets) in enumerate(train_loader):
     pred = pred[:,Settings.l_ReDUiD]
     pred = pred[0] #.mean(0)
     
-    pred = pred.detach().numpy()
+    pred = pred.detach().cpu().numpy()
     
     print('Genres:', inputs[1][1][0].sum(), (inputs[1][1][0]**2).sum())   
     print('** Inputs **',inputs[0][0][masks[0][0] == 1])
