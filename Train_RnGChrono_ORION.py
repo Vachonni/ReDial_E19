@@ -146,9 +146,9 @@ if args.DEBUG: args.epoch = 1
 for epoch in range(args.epoch):
     
     train_loss = Utils.TrainReconstruction(train_loader, model, criterion, optimizer, \
-                                           args.weights, args.DEVICE, args.EARLY)
+                                           args.weights, args.DEVICE, args.completionTrain)
     eval_loss = Utils.EvalReconstruction(valid_loader, model, criterion, args.DEVICE, 
-                                         args.EARLY)
+                                         args.completionTrain)
     
     
     """ """
@@ -186,7 +186,7 @@ for epoch in range(args.epoch):
     
     l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
          Utils.EvalPredictionRnGChrono(valid_gm_loader, model, \
-                                       criterion, args.DEVICE, args.topx, args.EARLY)
+                                       criterion, args.DEVICE, args.completionPredChrono, args.topx)
     
     
     print("\n  ====> RESULTS <==== \n")
@@ -269,7 +269,7 @@ print('\nEvaluation prediction error GLOBAL...')
 # Create loader of only 1 sample (user) in order to predict for each rating
 loader_bs1 = torch.utils.data.DataLoader(valid_dataset, batch_size=1, shuffle=True, **kwargs)
 
-pred_err, pred_rank_liked, pred_rank_disliked = Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.DEVICE, args.EARLY)
+pred_err, pred_rank_liked, pred_rank_disliked = Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.DEVICE, args.completionPred)
 
 
 print("\n  ====> RESULTS <==== \n")

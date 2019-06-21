@@ -41,10 +41,12 @@ parser.add_argument('--criterion', type=str, metavar='', default='BCEWLL', \
 parser.add_argument('--weights', type=float, metavar='', default=1, \
                     help='Weights multiplying the errors on ratings of 0 (underrepresented) \
                     during training.  1 -> no weights')
-parser.add_argument('--EARLY', type=bool, metavar='', default=False, \
-                    help="Reduced dataset for early stopping")
-
-
+parser.add_argument('--completionTrain', type=int, metavar='', default=100, \
+                    help='% of data used during 1 training epoch ~ "early stopping"')
+parser.add_argument('--completionPred', type=int, metavar='', default=100, \
+                    help='% of data used for prediction')
+parser.add_argument('--completionPredChrono', type=int, metavar='', default=100, \
+                    help='% of data used for chrono prediction')
 
 
 # Model
@@ -90,7 +92,13 @@ args = parser.parse_args()
 
 
 
+# Assertions
+
 if args.criterion == 'BCE':
     assert args.last_layer_activation != 'none','Need last layer activation with BCE'
 if args.criterion == 'BCEWLL':
     assert args.last_layer_activation == 'none',"Last layer activation must be 'none' with BCEWLL"
+
+assert 0 <= args.completionTrain <=100,'completionTrain should be in [0,100]'
+assert 0 <= args.completionPred <=100,'completionPred should be in [0,100]'
+assert 0 <= args.completionTPredChrono <=100,'completionPredChrono should be in [0,100]'

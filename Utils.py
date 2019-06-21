@@ -326,10 +326,10 @@ TRAINING AND EVALUATION
 
 
 def TrainReconstruction(train_loader, model, criterion, optimizer, weights_factor,\
-                        DEVICE, EARLY=False):
+                        DEVICE, completion):
     model.train()
     train_loss = 0
-    nb_batch = len(train_loader) 
+    nb_batch = len(train_loader) * completion / 100
     
     
     
@@ -342,11 +342,10 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
      
     for batch_idx, (masks, inputs, targets) in enumerate(train_loader):
         
-        # Early stopping at 10% of data
-        if EARLY:
-            if batch_idx > (nb_batch/10): 
-                print('EARLY stopping')
-                break
+        # Early stopping
+        if batch_idx > nb_batch: 
+            print('EARLY stopping')
+            break
         
         # Print update
         if batch_idx % 100 == 0: 
@@ -438,19 +437,18 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
 
 
 
-def EvalReconstruction(valid_loader, model, criterion, DEVICE, EARLY=False):
+def EvalReconstruction(valid_loader, model, criterion, DEVICE, completion):
     model.eval()
     eval_loss = 0
-    nb_batch = len(valid_loader)
+    nb_batch = len(valid_loader) * completion / 100
     
     with torch.no_grad():
         for batch_idx, (masks, inputs, targets) in enumerate(valid_loader):
             
-            # Early stopping at 10% of data
-            if EARLY:
-                if batch_idx > (nb_batch/10): 
-                    print('EARLY stopping')
-                    break
+            # Early stopping 
+            if batch_idx > nb_batch: 
+                print('EARLY stopping')
+                break
             
             # Print update
             if batch_idx % 100 == 0: 
@@ -501,7 +499,7 @@ def EvalReconstruction(valid_loader, model, criterion, DEVICE, EARLY=False):
 
 
 
-def EvalPrediction(loader, model, criterion, DEVICE, EARLY=False):
+def EvalPrediction(loader, model, criterion, DEVICE, completion):
     """
     Takes a list of ratings from a user (len = nb_movies) and a list of movies uID
     For each movie m in l_movies, predicts m's rating according to rest of movies in l_movies
@@ -513,17 +511,16 @@ def EvalPrediction(loader, model, criterion, DEVICE, EARLY=False):
     l_loss = []
     l_rank_liked = []
     l_rank_disliked = []
-    nb_batch = len(loader)
+    nb_batch = len(loader) * completion / 100
     
     with torch.no_grad():
         # For each user
         for batch_idx, (masks, inputs, _) in enumerate(loader):
             
-            # Early stopping at 1% of data
-            if EARLY:
-                if batch_idx > (nb_batch/100): 
-                    print('EARLY stopping')
-                    break
+            # Early stopping 
+            if batch_idx > nb_batch or nb_batch == 0: 
+                print('EARLY stopping')
+                break
                 
             # Print Update
             if batch_idx % 100 == 0:
@@ -645,7 +642,7 @@ def EvalPredictionGenres(loader, model, criterion, DEVICE):
 
 
 
-def EvalPredictionGenresRaw(loader, model, criterion, DEVICE, EARLY=False):
+def EvalPredictionGenresRaw(loader, model, criterion, DEVICE, completion):
     """
     Same as EvalPredictionGenres, but values returned are complete (not their mean)
     """
@@ -653,19 +650,19 @@ def EvalPredictionGenresRaw(loader, model, criterion, DEVICE, EARLY=False):
     l_loss = []
     l_rank_liked = []
     l_rank_disliked = []
-    nb_batch = len(loader)
+    nb_batch = len(loader) * completion / 100
     
     with torch.no_grad():
         # For each user
         for batch_idx, (masks, inputs, targets) in enumerate(loader):
             
-            # Early stopping at 10% of data
-            if EARLY:
-                if batch_idx > (nb_batch/10): 
-                    print('EARLY stopping')
-                    break
+            
+            # Early stopping 
+            if batch_idx > nb_batch or nb_batch == 0: 
+                print('EARLY stopping')
+                break
                 
-                
+              
             # Print Update
             if batch_idx % 1000 == 0:
                 print('Batch {} out of {}.'.format(batch_idx, nb_batch))     
@@ -732,7 +729,7 @@ def EvalPredictionGenresRaw(loader, model, criterion, DEVICE, EARLY=False):
 
 
 
-def EvalPredictionRnGChrono(valid_loader, model, criterion, DEVICE, topx=100, EARLY=False):
+def EvalPredictionRnGChrono(valid_loader, model, criterion, DEVICE, completion, topx=100):
     """
     Prediction on targets = to be mentionned movies...
     
@@ -740,7 +737,7 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, DEVICE, topx=100, EA
     
     """
     model.eval()
-    nb_batch = len(valid_loader)
+    nb_batch = len(valid_loader) * completion / 100
     
     eval_loss_with_genres = 0
     eval_loss_without_genres = 0
@@ -760,11 +757,10 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, DEVICE, topx=100, EA
     with torch.no_grad():
         for batch_idx, (masks, inputs, targets) in enumerate(valid_loader):
             
-            # Early stopping at 10% of data
-            if EARLY:
-                if batch_idx > (nb_batch/10): 
-                    print('EARLY stopping')
-                    break
+            # Early stopping 
+            if batch_idx > nb_batch or nb_batch == 0: 
+                print('EARLY stopping')
+                break
             
             # Print Update
             if batch_idx % 10 == 0:
