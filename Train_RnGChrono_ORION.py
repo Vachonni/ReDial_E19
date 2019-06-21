@@ -55,7 +55,7 @@ else:
     
 print('******* Creating Model *******')      
 # Create basic model
-model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type='relu', \
+model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type=args.activations, \
                                                 is_constrained=False, dp_drop_prob=0.0, \
                                                 last_layer_activations=False,\
                                                 lla = args.last_layer_activation).to(args.DEVICE)

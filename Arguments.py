@@ -36,10 +36,11 @@ parser.add_argument('--batch', type=int, metavar='', default=64, help='Batch siz
 parser.add_argument('--epoch', type=int, metavar='', default=1000, help='Number of epoch')
 parser.add_argument('--patience', type=int, metavar='', default=1, \
                     help='number of epoch to wait without improvement in valid_loss before ending training')
-parser.add_argument('--EARLY', type=bool, metavar='', default=False, \
-                    help="Reduced dataset for early stopping")
 parser.add_argument('--criterion', type=str, metavar='', default='BCEWLL', \
                     choices=['BCEWLL', 'BCE'], help='Loss function')
+parser.add_argument('--EARLY', type=bool, metavar='', default=False, \
+                    help="Reduced dataset for early stopping")
+
 
 
 
@@ -48,6 +49,9 @@ parser.add_argument('--layer1', type=int, metavar='', default=344, \
                     help='Integers corresponding to the first hidden layer size')
 parser.add_argument('--layer2', type=int, metavar='', default=27, \
                     help='Integers corresponding to the second hidden layer size. 0 if none.')
+parser.add_argument('--activations', type=str, metavar='', default='sigmoid', \
+                    choices=['relu', 'sigmoid'],\
+                    help='Activations in hidden layers of the model')
 parser.add_argument('--last_layer_activation', type=str, metavar='', default='none', \
                     choices=['none', 'sigmoid', 'softmax'],\
                     help='Last layer activation of the model')
