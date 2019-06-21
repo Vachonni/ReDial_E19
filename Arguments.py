@@ -38,6 +38,9 @@ parser.add_argument('--patience', type=int, metavar='', default=1, \
                     help='number of epoch to wait without improvement in valid_loss before ending training')
 parser.add_argument('--criterion', type=str, metavar='', default='BCEWLL', \
                     choices=['BCEWLL', 'BCE'], help='Loss function')
+parser.add_argument('--weights', type=float, metavar='', default=1, \
+                    help='Weights multiplying the errors on ratings of 0 (underrepresented) \
+                    during training.  1 -> no weights')
 parser.add_argument('--EARLY', type=bool, metavar='', default=False, \
                     help="Reduced dataset for early stopping")
 

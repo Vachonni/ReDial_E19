@@ -146,7 +146,7 @@ if args.DEBUG: args.epoch = 1
 for epoch in range(args.epoch):
     
     train_loss = Utils.TrainReconstruction(train_loader, model, criterion, optimizer, \
-                                           args.DEVICE, args.EARLY)
+                                           args.weights, args.DEVICE, args.EARLY)
     eval_loss = Utils.EvalReconstruction(valid_loader, model, criterion, args.DEVICE, 
                                          args.EARLY)
     

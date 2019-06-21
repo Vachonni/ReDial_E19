@@ -325,7 +325,8 @@ TRAINING AND EVALUATION
 
 
 
-def TrainReconstruction(train_loader, model, criterion, optimizer, DEVICE, EARLY=False):
+def TrainReconstruction(train_loader, model, criterion, optimizer, weights_factor,\
+                        DEVICE, EARLY=False):
     model.train()
     train_loss = 0
     nb_batch = len(train_loader) 
@@ -378,14 +379,13 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, DEVICE, EARLY
         # Basic case
         else: 
             inputs = inputs.to(DEVICE)
-            # Not Genres case, so can add weights to BCE training
-            # 94% are target 1, so *94 targets at 0
-            weights = (targets -1.0) * -94.0 + targets
-            criterion.weight = weights.float()
+            
         
         # Add weights on targets rated 0 because outnumbered 94 times by targets 1
-        weights = (masks == 1) * (targets == 0) * 93 + torch.ones_like(targets, dtype=torch.uint8)
+        weights = (masks == 1) * (targets == 0) * weights_factor + \
+                  torch.ones_like(targets, dtype=torch.uint8)
         criterion.weight = weights.float()
+        
 
         """ UNcomment TO TRAIN WITHOUT GENRES"""
         # Genres removed from inputs 
@@ -416,20 +416,21 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, DEVICE, EARLY
 #        masks = masks * (inputs[1][1] != 0).float()
      
         
+
+        loss = (criterion(pred, targets) * masks).sum()
+        assert loss >= 0, 'Getting a negative loss in training - IMPOSSIBLE'
         # Using only predictions of movies that were rated
      #   pred = pred * masks
         nb_ratings = masks.sum()
-     #   del(masks)
-        loss = (criterion(pred, targets) * masks).sum()
-        # Put weights back at None for other evaluations
-        criterion.weight = None
-
-        loss = loss / nb_ratings
-        if loss < 0: 
-            print("negative loss, with pred min at:", pred.min())
+        loss /= nb_ratings
         loss.backward()
         optimizer.step()
-        train_loss += loss
+        
+        # Remove weights for other evaluations
+        criterion.weight = None
+        loss_no_weights = (criterion(pred, targets) * masks).sum() 
+        loss_no_weights /= nb_ratings
+        train_loss += loss_no_weights
         
     train_loss /= nb_batch
         
