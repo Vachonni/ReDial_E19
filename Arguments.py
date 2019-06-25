@@ -47,6 +47,8 @@ parser.add_argument('--completionPred', type=int, metavar='', default=100, \
                     help='% of data used for prediction')
 parser.add_argument('--completionPredChrono', type=int, metavar='', default=100, \
                     help='% of data used for chrono prediction')
+parser.add_argument('--EARLY', type=bool, metavar='', default=False, \
+                    help="Train at 10%, Pred at 1% and PredChrono at 1%")
 
 
 # Model
@@ -92,7 +94,8 @@ args = parser.parse_args()
 
 
 
-# Assertions
+
+# ASSERTIONS
 
 if args.criterion == 'BCE':
     assert args.last_layer_activation != 'none','Need last layer activation with BCE'
@@ -101,4 +104,17 @@ if args.criterion == 'BCEWLL':
 
 assert 0 <= args.completionTrain <=100,'completionTrain should be in [0,100]'
 assert 0 <= args.completionPred <=100,'completionPred should be in [0,100]'
-assert 0 <= args.completionTPredChrono <=100,'completionPredChrono should be in [0,100]'
+assert 0 <= args.completionPredChrono <=100,'completionPredChrono should be in [0,100]'
+
+
+
+
+# CONVERSION
+# (group of hyper-parameters group under a name for efficiency when running)
+
+if args.EARLY:
+    args.completionTrain = 10 
+    args.completionPred = 1
+    args.completionPredChrono = 1
+    
+    
