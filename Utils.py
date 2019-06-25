@@ -247,8 +247,8 @@ class RnGChronoDataset(data.Dataset):
     
     RETUNRS:
         masks, (inputs, genres) and targets. 
-        Genres is vector with value for top 100 movies of intersection of genres mentionned 
-        by User, normalized.
+        Genres is vector with value for top_cut movies of intersection of genres mentionned 
+        by user, normalized.
 
     """
     
@@ -681,11 +681,13 @@ def EvalPredictionGenresRaw(loader, model, criterion, DEVICE, completion):
                 inputs[0] = inputs[0] + targets
             else:
                 inputs[1] = inputs[1].to(DEVICE)
-                
+           
+            count_pred = 0
             # For each movie
             for m, mask in enumerate(masks[0]):           # [0] because loader returns list of list (batches usually > 1)
                 if mask == 1:                             # If a rated movie    
-                        
+                    
+
                     # Get the rating for movie m
                     r = inputs[0][0][m].clone().detach()         # To insure deepcopy and not reference
                     # "Hide" the rating of movie m
@@ -716,8 +718,12 @@ def EvalPredictionGenresRaw(loader, model, criterion, DEVICE, completion):
                  #       print("Added to the DISliked movies ranking")
                         l_rank_disliked.append(ranks[0,0].item())
                  #   print("number of predictions with same value", ranks.size()[0])
-      
-          #  if batch_idx > 10: break
+                    
+                 # Early stoopping
+                    count_pred += 1 
+                    if count_pred > len(masks[0].nonzero()) * completion / 100: 
+                        print('stop at {} prediction for user'.format(count_pred), len(masks[0].nonzero()))
+                        break
 
                     
     l_loss = np.array(l_loss)
