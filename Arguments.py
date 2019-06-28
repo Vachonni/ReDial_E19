@@ -61,6 +61,7 @@ parser.add_argument('--EARLY', type=bool, metavar='', default=False, \
                     help="Train at 10%, Pred at 1% and PredChrono at 1%")
 
 
+
 # Model
 parser.add_argument('--layer1', type=int, metavar='', default=344, \
                     help='Integers corresponding to the first hidden layer size')
@@ -72,6 +73,9 @@ parser.add_argument('--activations', type=str, metavar='', default='sigmoid', \
 parser.add_argument('--last_layer_activation', type=str, metavar='', default='none', \
                     choices=['none', 'sigmoid', 'softmax'],\
                     help='Last layer activation of the model')
+parser.add_argument('--preModel', type=str, metavar='', default='none', \
+                    help='Path to a pre-trained model to start with. Should \
+                    include a GenresWrapper of same type')
 
 
 # Genres 

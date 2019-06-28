@@ -76,31 +76,32 @@ if args.layer2 == 0:
     layers = [nb_movies, args.layer1]
 else: 
     layers = [nb_movies, args.layer1, args.layer2]
-    
-    
-print('******* Creating Model *******')      
-# Create basic model
-model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type=args.activations, \
-                                                is_constrained=False, dp_drop_prob=0.0, \
-                                                last_layer_activations=False,\
-                                                lla = args.last_layer_activation).to(args.DEVICE)
 
 
-""" TRYING PRE ML """
-print('******* Load Pre-Trained Model *******')      
-## Load model pre-trained on ML
-#model_pre_ML = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type='relu', \
-#                                                  is_constrained=False, dp_drop_prob=0.0, \
-#                                                  last_layer_activations=False).to(args.DEVICE)
-#checkpoint = torch.load(os.path.expanduser('~/ReDial/AE/Results/AETrained_MLasReDial_MLR.pth'),\
-#                        map_location=args.DEVICE)
-#model_pre_ML.load_state_dict(checkpoint['state_dict'])
-#model_base = model_pre_ML
+# Create a new model    
+if args.preModel == 'none':     
+    print('******* Creating NEW Model *******')      
+    # Create basic model
+    model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type=args.activations, \
+                                                    is_constrained=False, dp_drop_prob=0.0, \
+                                                    last_layer_activations=False,\
+                                                    lla = args.last_layer_activation).to(args.DEVICE)
+    model = AutoEncoders.GenresWrapperChronoUnit(model_base).to(args.DEVICE)
+# Load an existing model
+else:
+    print('******* Load EXISTING Model *******')      
+    model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type=args.activations, \
+                                                    is_constrained=False, dp_drop_prob=0.0, \
+                                                    last_layer_activations=False, \
+                                                    lla = args.last_layer_activation).to(args.DEVICE)
+    model = AutoEncoders.GenresWrapperChronoUnit(model_base).to(args.DEVICE)
+    checkpoint = torch.load(args.preModel, map_location=args.DEVICE)
+    model.load_state_dict(checkpoint['state_dict'])
 
 
-print('******* Creating Genres Wrapper OR New Model with Genres on Pre Trained Model *******')      
-model = AutoEncoders.GenresWrapperChronoUnit(model_base).to(args.DEVICE)
 optimizer = optim.Adam(model.parameters(), lr = args.lr, weight_decay=0.0)
+
+
 if args.criterion == 'BCEWLL':
     criterion = torch.nn.BCEWithLogitsLoss(reduction='none')
 elif args.criterion == 'BCE':
