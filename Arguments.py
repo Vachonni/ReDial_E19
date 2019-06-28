@@ -4,8 +4,7 @@
 Created on Tue Jun 18 11:46:45 2019
 
 
-%%%%%$%$?$?$?$?$?%@?%$@?*&$&(@#*&@(*?$*&(!?*&
-
+List of argumnents usable with parser 
 
 
 @author: nicholas
@@ -28,24 +27,35 @@ parser.add_argument('--dataTrain', type=str, metavar='', default='ReDialRnGChron
                     help='File name of Dataset to train on')
 parser.add_argument('--dataValid', type=str, metavar='', default='ReDialRnGChronoVALID.json', \
                     help='File name of Dataset to for validation')
+parser.add_argument('--incl_genres', type=bool, metavar='', default=True, \
+                    help='If False, no use genres (Dataset part empty for genres)')
+parser.add_argument('--merge_data', type=bool, metavar='', default=True, \
+                    help='If True, mentionned and to be mentionned data are added. Used in Dataset.')
 
 
 # Training
 parser.add_argument('--lr', type=float, metavar='', default=0.001, help='Learning rate')
 parser.add_argument('--batch', type=int, metavar='', default=64, help='Batch size')
 parser.add_argument('--epoch', type=int, metavar='', default=1000, help='Number of epoch')
-parser.add_argument('--patience', type=int, metavar='', default=1, \
-                    help='number of epoch to wait without improvement in valid_loss before ending training')
 parser.add_argument('--criterion', type=str, metavar='', default='BCEWLL', \
                     choices=['BCEWLL', 'BCE'], help='Loss function')
+parser.add_argument('--noiseTrain', type=bool, metavar='', default=False, \
+                    help='When True, mimics ReDial inputs by allowing only from 1 to 7 (random)\
+                    ratings as inputs.')
+parser.add_argument('--noiseEval', type=bool, metavar='', default=False, \
+                    help='When True, mimics ReDial inputs by allowing only from 1 to 7 (random)\
+                    ratings as inputs.')
 parser.add_argument('--weights', type=float, metavar='', default=1, \
                     help='Weights multiplying the errors on ratings of 0 (underrepresented) \
                     during training.  1 -> no weights')
-parser.add_argument('--completionTrain', type=int, metavar='', default=100, \
+
+parser.add_argument('--patience', type=int, metavar='', default=1, \
+                    help='number of epoch to wait without improvement in valid_loss before ending training')
+parser.add_argument('--completionTrain', type=float, metavar='', default=100, \
                     help='% of data used during 1 training epoch ~ "early stopping"')
-parser.add_argument('--completionPred', type=int, metavar='', default=100, \
+parser.add_argument('--completionPred', type=float, metavar='', default=100, \
                     help='% of data used for prediction')
-parser.add_argument('--completionPredChrono', type=int, metavar='', default=100, \
+parser.add_argument('--completionPredChrono', type=float, metavar='', default=100, \
                     help='% of data used for chrono prediction')
 parser.add_argument('--EARLY', type=bool, metavar='', default=False, \
                     help="Train at 10%, Pred at 1% and PredChrono at 1%")
@@ -71,12 +81,15 @@ parser.add_argument('--top_cut', type=int, metavar='', default=100, \
                     help='number of movies in genres vector (for torch Dataset)')
 
 
-# Metrcis
+# Metrics
 parser.add_argument('--topx', type=int, metavar='', default=100, \
                     help='for NDCG mesure, size of top ranks considered')
 
 
 # Others
+parser.add_argument('--seed', type=bool, metavar='', default=False, \
+                    help="If True, random always give the same")
+
 parser.add_argument('--orion', type=bool, metavar='', default=False, \
                     help="Run Orion - Hyper Parameter search")
 
@@ -105,6 +118,7 @@ if args.criterion == 'BCEWLL':
 assert 0 <= args.completionTrain <=100,'completionTrain should be in [0,100]'
 assert 0 <= args.completionPred <=100,'completionPred should be in [0,100]'
 assert 0 <= args.completionPredChrono <=100,'completionPredChrono should be in [0,100]'
+
 
 
 

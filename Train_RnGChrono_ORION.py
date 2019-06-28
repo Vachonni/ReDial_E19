@@ -10,7 +10,10 @@ Training AE Recommender
 @author: nicholas
 """
 
-######## IMPORTS
+
+########  IMPORTS  ########
+
+
 import sys
 import json
 import torch
@@ -19,7 +22,7 @@ import numpy as np
 from statistics import mean
 import matplotlib.pyplot as plt
 
-######## PERSONNAL IMPORTS
+# Personnal imports
 import AutoEncoders 
 import Utils
 import Settings 
@@ -29,18 +32,40 @@ if args.orion:
     from orion.client import report_results
 
 
+
+
+########  INIT  ########
+
+
 # Print agrs that will be used
 print(sys.argv)
 
 # Add 1 to nb_movies_in_total because index of movies starts at 1
 nb_movies = Settings.nb_movies_in_total + 1
 
-
-######## CUDA AVAILABILITY CHECK
+# Cuda availability check
 if args.DEVICE == "cuda" and not torch.cuda.is_available():
     raise ValueError("DEVICE specify a GPU computation but CUDA is not available")
   
-    
+# Seed 
+if args.seed:
+    manualSeed = 1
+    # Python
+  #  random.seed(manualSeed)
+    # Numpy
+    np.random.seed(manualSeed)
+    # Torch
+    torch.manual_seed(manualSeed)
+    # Torch with GPU
+    if args.DEVICE == "cuda":
+        torch.cuda.manual_seed(manualSeed)
+        torch.cuda.manual_seed_all(manualSeed)
+        torch.backends.cudnn.enabled = False 
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+
+
+
 
 
 ########  MODEL  ########
@@ -84,6 +109,7 @@ elif args.criterion == 'BCE':
 
 
 
+
 ######## DATA ########
 
 ######## LOAD DATA 
@@ -107,9 +133,11 @@ popularity = torch.from_numpy(popularity).float()
 ######## CREATING DATASET ListRatingDataset 
 print('******* Creating torch datasets *******')
 train_dataset = Utils.RnGChronoDataset(train_data, dict_genresInter_idx_UiD, \
-                                       nb_movies, popularity, args.top_cut)
+                                       nb_movies, popularity, args.DEVICE, args.incl_genres, \
+                                       args.merge_data, args.noiseTrain, args.top_cut)
 valid_dataset = Utils.RnGChronoDataset(valid_data, dict_genresInter_idx_UiD, \
-                                       nb_movies, popularity, args.top_cut)
+                                       nb_movies, popularity, args.DEVICE, args.incl_genres, \
+                                       args.merge_data, args.noiseEval, args.top_cut)
 
 ######## CREATE DATALOADER
 print('******* Creating dataloaders *******\n\n')    
@@ -120,6 +148,8 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,
                                            shuffle=True, drop_last=True, **kwargs)
 valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch,\
                                            shuffle=True, drop_last=True, **kwargs)    
+
+
 
 
 
@@ -146,8 +176,8 @@ if args.DEBUG: args.epoch = 1
 for epoch in range(args.epoch):
     
     train_loss = Utils.TrainReconstruction(train_loader, model, criterion, optimizer, \
-                                           args.weights, args.DEVICE, args.completionTrain)
-    eval_loss = Utils.EvalReconstruction(valid_loader, model, criterion, args.DEVICE, 
+                                           args.weights, args.completionTrain)
+    eval_loss = Utils.EvalReconstruction(valid_loader, model, criterion, \
                                          args.completionTrain)
     
     
@@ -169,7 +199,7 @@ for epoch in range(args.epoch):
     print('\n==> Epoch: {} \n======> Train loss: {:.4f}\n======> Valid loss: {:.4f}'.format(
           epoch, train_loss, eval_loss))
     print("Parameter g = ", model.g.data, "Average:", model.g.data.mean(), \
-          "min:", model.g.data.min(), '\n\n')
+          "min:", model.g.data.min(), "max", model.g.data.max(), '\n\n')
     print('g equal?', (old_g == model.g.data).all())
     old_g = model.g.data.clone()
     
@@ -177,52 +207,53 @@ for epoch in range(args.epoch):
     
     # CHRONO EVALUAITON
 
-
-    print("\n\n\n\nEvaluating prediction error CHORNOLOGICAL...")
-    # Use only samples where genres mentionned (gm)
-    RnG_valid_gm_data = [[c,m,g,tbm] for c,m,g,tbm in valid_data if g != []]
-    valid_gm_dataset = Utils.RnGChronoDataset(RnG_valid_gm_data, dict_genresInter_idx_UiD, nb_movies, popularity)
-    valid_gm_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
+    if args.completionPredChrono != 0:
+        print("\n\n\n\nEvaluating prediction error CHORNOLOGICAL...")
+        # Use only samples where genres mentionned (gm)
+        RnG_valid_gm_data = [[c,m,g,tbm] for c,m,g,tbm in valid_data if g != []]
+        valid_gm_dataset = Utils.RnGChronoDataset(RnG_valid_gm_data, dict_genresInter_idx_UiD, nb_movies, \
+                                                  popularity, args.DEVICE, args.incl_genres, False, args.noiseEval, args.top_cut)
+                                                                                # Nerver merge data
+        valid_gm_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
+        
+        l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
+             Utils.EvalPredictionRnGChrono(valid_gm_loader, model, \
+                                           criterion, args.completionPredChrono, args.topx)
+        
+        
+        print("\n  ====> RESULTS <==== \n")
+        print("Global avrg pred error with {:.4f} and without {:.4f}".format(l1, l0))
     
-    l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
-         Utils.EvalPredictionRnGChrono(valid_gm_loader, model, \
-                                       criterion, args.DEVICE, args.completionPredChrono, args.topx)
-    
-    
-    print("\n  ====> RESULTS <==== \n")
-    print("Global avrg pred error with {:.4f} and without {:.4f}".format(l1, l0))
-
-    
-    print("\n  ==> BY Nb of mentions, on to be mentionned Liked <== \n")
-    
-    
-    avrg_e1, avrg_e0 = Utils.ChronoPlot(e1, e0, 'Avrg pred error')
-    print("ReDial liked avrg pred error with {:.4f} and without {:.4f}".format(avrg_e1, avrg_e0))
-    
-    avrg_a1, avrg_a0 = Utils.ChronoPlot(a1, a0, 'Avrg_rank')
-    print("ReDial liked avrg ranks with {:.2f} and without {:.2f}".format(avrg_a1, avrg_a0))
-    
-    avrg_mr1, avrg_mr0 = Utils.ChronoPlot(mr1, mr0, 'MMRR')
-    print("ReDial MMRR with {:.2f} and without {:.2f}".format(avrg_mr1, avrg_mr0))
-    
-    avrg_r1, avrg_r0 = Utils.ChronoPlot(r1, r0, 'MRR')
-    print("ReDial MRR with {:.2f} and without {:.2f}".format(avrg_r1, avrg_r0))
-    
-    avrg_d1, avrg_d0 = Utils.ChronoPlot(d1, d0, 'NDCG')
-    print("ReDial NDCG with {:.2f} and without {:.2f}".format(avrg_d1, avrg_d0))
-    
-    
-    
-    # BY EPOCH GRAPHS
-    
-    print("\n\n\n\n  => BY Epoch <= \n")
-    global_pred_err_epoch.append((l1.item(),l0.item()))
-    ReDial_pred_err_epoch.append((avrg_e1,avrg_e0))
-    avrg_ranks_epoch.append((avrg_a1,avrg_a0))
-    
-    Utils.EpochPlot(global_pred_err_epoch, 'Global avrg pred error')
-    Utils.EpochPlot(ReDial_pred_err_epoch, 'ReDial liked avrg pred error')
-    Utils.EpochPlot(avrg_ranks_epoch, 'ReDial liked avrg ranks')
+        
+        print("\n  ==> BY Nb of mentions, on to be mentionned Liked <== \n")
+        
+        
+        avrg_e1, avrg_e0 = Utils.ChronoPlot(e1, e0, 'Avrg pred error')
+        print("ReDial liked avrg pred error with {:.4f} and without {:.4f}".format(avrg_e1, avrg_e0))
+        
+        avrg_a1, avrg_a0 = Utils.ChronoPlot(a1, a0, 'Avrg_rank')
+        print("ReDial liked avrg ranks with {:.2f} and without {:.2f}".format(avrg_a1, avrg_a0))
+        
+        avrg_mr1, avrg_mr0 = Utils.ChronoPlot(mr1, mr0, 'MMRR')
+        print("ReDial MMRR with {:.2f} and without {:.2f}".format(avrg_mr1, avrg_mr0))
+        
+        avrg_r1, avrg_r0 = Utils.ChronoPlot(r1, r0, 'MRR')
+        print("ReDial MRR with {:.2f} and without {:.2f}".format(avrg_r1, avrg_r0))
+        
+        avrg_d1, avrg_d0 = Utils.ChronoPlot(d1, d0, 'NDCG')
+        print("ReDial NDCG with {:.2f} and without {:.2f}".format(avrg_d1, avrg_d0))
+        
+        
+        # BY EPOCH GRAPHS
+        
+        print("\n\n\n\n  => BY Epoch <= \n")
+        global_pred_err_epoch.append((l1.item(),l0.item()))
+        ReDial_pred_err_epoch.append((avrg_e1,avrg_e0))
+        avrg_ranks_epoch.append((avrg_a1,avrg_a0))
+        
+        Utils.EpochPlot(global_pred_err_epoch, 'Global avrg pred error')
+        Utils.EpochPlot(ReDial_pred_err_epoch, 'ReDial liked avrg pred error')
+        Utils.EpochPlot(avrg_ranks_epoch, 'ReDial liked avrg ranks')
     
     
     
@@ -266,10 +297,9 @@ for epoch in range(args.epoch):
 # FOR GLOBAL - OLD EVALUATION
 
 print('\nEvaluation prediction error GLOBAL...')
-# Create loader of only 1 sample (user) in order to predict for each rating
+# Loader of only 1 sample (user) in order to predict for each rating
 loader_bs1 = torch.utils.data.DataLoader(valid_dataset, batch_size=1, shuffle=True, **kwargs)
-
-pred_err, pred_rank_liked, pred_rank_disliked = Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.DEVICE, args.completionPred)
+pred_err, pred_rank_liked, pred_rank_disliked = Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPred)
 
 
 print("\n  ====> RESULTS <==== \n")
@@ -364,9 +394,9 @@ plt.show()
 #%%
 
 for batch_idx, (masks, inputs, targets) in enumerate(train_loader):
-    inputs[0] = inputs[0].to(args.DEVICE)
-    inputs[1][0] = inputs[1][0].to(args.DEVICE)
-    inputs[1][1] = inputs[1][1].to(args.DEVICE)
+    inputs[0] = inputs[0]
+    inputs[1][0] = inputs[1][0]
+    inputs[1][1] = inputs[1][1]
     pred = model(inputs)
     if model.model_pre.lla == 'none':
         pred = torch.nn.Sigmoid()(pred)
@@ -383,7 +413,7 @@ for batch_idx, (masks, inputs, targets) in enumerate(train_loader):
     plt.hist(pred, 100)
     plt.show()
     
-    if batch_idx > 10:break
+    if batch_idx >= 0:break
 
 
 

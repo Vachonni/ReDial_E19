@@ -29,206 +29,308 @@ DATASET - Sub classes of Pytorch DATASET to prepare for Dataloader
 """
 
 
-class ListRatingsDataset(data.Dataset):
-    """
-    This is a class working with [ [UserID, [movies uID], [ratings 0-1]] ].
-    Each element of the main list corresponds to one user's ratings for each movie.
-    
-    Returns a sample (input) and a targeted value (target).
-    Also returns a MASK, which is a list of bool of len = nb_movies with 1.0 for movies rated by user, 0.0 elsewhere.
-    
-    If noise='none', all inputs are returned
-    If noise='uniform', returns input with p ratings only, where p follows uniform(1, nb of ratings)
-    If noise='one", returns input with one rating missing (for evaluation)
-    """
-    
-    def __init__(self, R_list, nb_movies, noise='none'):
-        self.R_list = R_list
-        self.nb_movies = nb_movies
-        self.noise = noise
-        
-    def __len__(self):
-        "Total number of samples. Here one sample is one user's ratings"
-        return len(self.R_list)
-
-    def __getitem__(self, index):
-        "Generate one sample of data."
-        # Get list of movies and ratings for user number (=index) 
-        UserID, l_movies, l_ratings = self.R_list[index]
-        # Init
-        inputs = torch.zeros(self.nb_movies)
-        targets = torch.zeros(self.nb_movies)   
-        masks = torch.zeros(self.nb_movies)
-        # Targets and Masks
-        for i in range(len(l_movies)):
-            targets[l_movies[i]] = l_ratings[i]
-            masks[l_movies[i]] = 1.0     
-        # Manage noise
-        if self.noise == 'asReDial' or self.noise == 'uniform' or self.noise == 'one':
-            if self.noise == 'asReDial':
-                max_input = min(7, len(l_movies))   
-                p = torch.randint(0, max_input, (1,)).type(torch.uint8)                
-            if self.noise == 'uniform':
-                p = torch.randint(0, len(l_movies)+1, (1,)).type(torch.uint8)
-            if self.noise == 'one':
-                p = torch.randint(len(l_movies)-1, len(l_movies), (1,)).type(torch.uint8)
-            ind_to_take = torch.randperm(len(l_movies))[:p]
-            l_movies = torch.IntTensor(l_movies)
-            l_ratings = torch.IntTensor(l_ratings)
-            l_movies = l_movies[ind_to_take]
-            l_ratings = l_ratings[ind_to_take]
-        # Inputs
-        for i in range(len(l_movies)):
-            inputs[l_movies[i]] = l_ratings[i]
-        return masks, inputs, targets 
-
-
-
-class RatingsGenresDataset(data.Dataset):
-    """
-    INPUT: 
-        R_list is movie list. Format [ [UserID, [movies uID], [ratings 0-1]] ].  Each element of the main list 
-        corresponds to one user's ratings for each movie.
-        
-        G_list is genres list. Format [ [UserID, [movies UiD of genres mentionnned in ConvID = UserID]] ]. 
-    
-        If noise='none', all inputs are returned
-        If noise='uniform', returns input with p ratings only, where p follows uniform(1, nb of ratings)
-        If noise='one", returns input with one rating missing (for evaluation)
-    
-    RETUNRS:
-        A sample (INPUT) and a targeted value (TARGET) corresponding to movies ratings.
-        Also returns a MASK, which is a list of bool of len = nb_movies with 1.0 for movies rated by user, 0.0 elsewhere.
-        Finally, returns a GENRES vector with one for all movies having ALL genres mentionned by User.
-
-    """
-    
-    def __init__(self, R_list, G_list, nb_movies, noise='none'):
-        self.R_list = R_list
-        self.G_list = G_list
-        self.nb_movies = nb_movies
-        self.noise = noise
-        
-    def __len__(self):
-        "Total number of samples. Here one sample is one user's ratings"
-        return len(self.R_list)
-
-    def __getitem__(self, index):
-        "Generate one sample of data."
-        # Get list of movies and ratings for user number (=index) 
-        R_UserID, l_movies, l_ratings = self.R_list[index]
-        G_UserID, l_genres = self.G_list[index]
-        # Test if same UserID
-        if R_UserID != G_UserID:
-            raise ValueError("Not the same UserID", R_UserID, G_UserID)
-        # Init
-        ratings = torch.zeros(self.nb_movies)
-        targets = torch.zeros(self.nb_movies)   
-        masks = torch.zeros(self.nb_movies)
-        genres = torch.zeros(self.nb_movies)
-        # Targets and Masks
-        for i in range(len(l_movies)):
-            targets[l_movies[i]] = l_ratings[i]
-            masks[l_movies[i]] = 1.0     
-        # Manage noise
-        if self.noise == 'uniform' or self.noise == 'one':
-            if self.noise == 'uniform':
-                p = torch.randint(0, len(l_movies)+1, (1,)).type(torch.uint8)
-            if self.noise == 'one':
-                p = torch.randint(len(l_movies)-1, len(l_movies), (1,)).type(torch.uint8)
-            ind_to_take = torch.randperm(len(l_movies))[:p]
-            l_movies = torch.IntTensor(l_movies)
-            l_ratings = torch.IntTensor(l_ratings)
-            l_movies = l_movies[ind_to_take]
-            l_ratings = l_ratings[ind_to_take]
-        # Inputs
-        for i in range(len(l_movies)):
-            ratings[l_movies[i]] = l_ratings[i]
-        # Genres
-        for m in l_genres:
-            genres[m] = 1.0
-
-        return masks, (ratings, genres), targets
+#class ListRatingsDataset(data.Dataset):
+#    """
+#    This is a class working with [ [UserID, [movies uID], [ratings 0-1]] ].
+#    Each element of the main list corresponds to one user's ratings for each movie.
+#    
+#    Returns a sample (input) and a targeted value (target).
+#    Also returns a MASK, which is a list of bool of len = nb_movies with 1.0 for movies rated by user, 0.0 elsewhere.
+#    
+#    If noise='none', all inputs are returned
+#    If noise='uniform', returns input with p ratings only, where p follows uniform(1, nb of ratings)
+#    If noise='one", returns input with one rating missing (for evaluation)
+#    """
+#    
+#    def __init__(self, R_list, nb_movies, noise='none'):
+#        self.R_list = R_list
+#        self.nb_movies = nb_movies
+#        self.noise = noise
+#        
+#    def __len__(self):
+#        "Total number of samples. Here one sample is one user's ratings"
+#        return len(self.R_list)
+#
+#    def __getitem__(self, index):
+#        "Generate one sample of data."
+#        # Get list of movies and ratings for user number (=index) 
+#        UserID, l_movies, l_ratings = self.R_list[index]
+#        # Init
+#        inputs = torch.zeros(self.nb_movies)
+#        targets = torch.zeros(self.nb_movies)   
+#        masks = torch.zeros(self.nb_movies)
+#        # Targets and Masks
+#        for i in range(len(l_movies)):
+#            targets[l_movies[i]] = l_ratings[i]
+#            masks[l_movies[i]] = 1.0     
+#        # Manage noise
+#        if self.noise == 'asReDial' or self.noise == 'uniform' or self.noise == 'one':
+#            if self.noise == 'asReDial':
+#                max_input = min(7, len(l_movies))   
+#                p = torch.randint(0, max_input, (1,)).type(torch.uint8)                
+#            if self.noise == 'uniform':
+#                p = torch.randint(0, len(l_movies)+1, (1,)).type(torch.uint8)
+#            if self.noise == 'one':
+#                p = torch.randint(len(l_movies)-1, len(l_movies), (1,)).type(torch.uint8)
+#            ind_to_take = torch.randperm(len(l_movies))[:p]
+#            l_movies = torch.IntTensor(l_movies)
+#            l_ratings = torch.IntTensor(l_ratings)
+#            l_movies = l_movies[ind_to_take]
+#            l_ratings = l_ratings[ind_to_take]
+#        # Inputs
+#        for i in range(len(l_movies)):
+#            inputs[l_movies[i]] = l_ratings[i]
+#        return masks, inputs, targets 
 
 
 
-class RatingsGenresNormalizedDataset(data.Dataset):
-    """
-    ****** SAME AS RatingsGenresNormalizedDataset BUT WITH GENRES VECTORS OF LENGHT ONE ******
-    
-    INPUT: 
-        R_list is movie list. Format [ [UserID, [movies uID], [ratings 0-1]] ].  Each element of the main list 
-        corresponds to one user's ratings for each movie.
-        
-        G_list is genres list. Format [ [UserID, [movies UiD of genres mentionnned in ConvID = UserID]] ]. 
-    
-        If noise='none', all inputs are returned
-        If noise='uniform', returns input with p ratings only, where p follows uniform(1, nb of ratings)
-        If noise='one", returns input with one rating missing (for evaluation)
-    
-    RETUNRS:
-        A sample (INPUT) and a targeted value (TARGET) corresponding to movies ratings.
-        Also returns a MASK, which is a list of bool of len = nb_movies with 1.0 for movies rated by user, 0.0 elsewhere.
-        Finally, returns a GENRES vector with one for all movies having ALL genres mentionned by User.
+#class RatingsGenresDataset(data.Dataset):
+#    """
+#    INPUT: 
+#        R_list is movie list. Format [ [UserID, [movies uID], [ratings 0-1]] ].  Each element of the main list 
+#        corresponds to one user's ratings for each movie.
+#        
+#        G_list is genres list. Format [ [UserID, [movies UiD of genres mentionnned in ConvID = UserID]] ]. 
+#    
+#        If noise='none', all inputs are returned
+#        If noise='uniform', returns input with p ratings only, where p follows uniform(1, nb of ratings)
+#        If noise='one", returns input with one rating missing (for evaluation)
+#    
+#    RETUNRS:
+#        A sample (INPUT) and a targeted value (TARGET) corresponding to movies ratings.
+#        Also returns a MASK, which is a list of bool of len = nb_movies with 1.0 for movies rated by user, 0.0 elsewhere.
+#        Finally, returns a GENRES vector with one for all movies having ALL genres mentionned by User.
+#
+#    """
+#    
+#    def __init__(self, R_list, G_list, nb_movies, noise='none'):
+#        self.R_list = R_list
+#        self.G_list = G_list
+#        self.nb_movies = nb_movies
+#        self.noise = noise
+#        
+#    def __len__(self):
+#        "Total number of samples. Here one sample is one user's ratings"
+#        return len(self.R_list)
+#
+#    def __getitem__(self, index):
+#        "Generate one sample of data."
+#        # Get list of movies and ratings for user number (=index) 
+#        R_UserID, l_movies, l_ratings = self.R_list[index]
+#        G_UserID, l_genres = self.G_list[index]
+#        # Test if same UserID
+#        if R_UserID != G_UserID:
+#            raise ValueError("Not the same UserID", R_UserID, G_UserID)
+#        # Init
+#        ratings = torch.zeros(self.nb_movies)
+#        targets = torch.zeros(self.nb_movies)   
+#        masks = torch.zeros(self.nb_movies)
+#        genres = torch.zeros(self.nb_movies)
+#        # Targets and Masks
+#        for i in range(len(l_movies)):
+#            targets[l_movies[i]] = l_ratings[i]
+#            masks[l_movies[i]] = 1.0     
+#        # Manage noise
+#        if self.noise == 'uniform' or self.noise == 'one':
+#            if self.noise == 'uniform':
+#                p = torch.randint(0, len(l_movies)+1, (1,)).type(torch.uint8)
+#            if self.noise == 'one':
+#                p = torch.randint(len(l_movies)-1, len(l_movies), (1,)).type(torch.uint8)
+#            ind_to_take = torch.randperm(len(l_movies))[:p]
+#            l_movies = torch.IntTensor(l_movies)
+#            l_ratings = torch.IntTensor(l_ratings)
+#            l_movies = l_movies[ind_to_take]
+#            l_ratings = l_ratings[ind_to_take]
+#        # Inputs
+#        for i in range(len(l_movies)):
+#            ratings[l_movies[i]] = l_ratings[i]
+#        # Genres
+#        for m in l_genres:
+#            genres[m] = 1.0
+#
+#        return masks, (ratings, genres), targets
 
-    """
-    
-    def __init__(self, R_list, G_list, nb_movies, popularity, noise='none'):
-        self.R_list = R_list
-        self.G_list = G_list
-        self.nb_movies = nb_movies
-        self.popularity = popularity
-        self.noise = noise
-        
-    def __len__(self):
-        "Total number of samples. Here one sample is one user's ratings"
-        return len(self.R_list)
 
-    def __getitem__(self, index):
-        "Generate one sample of data."
-        # Get list of movies and ratings for user number (=index) 
-        R_UserID, l_movies, l_ratings = self.R_list[index]
-        G_UserID, l_genres = self.G_list[index]
-        # Test if same UserID
-        if R_UserID != G_UserID:
-            raise ValueError("Not the same UserID", R_UserID, G_UserID)
-        # Init
-        ratings = torch.zeros(self.nb_movies)
-        targets = torch.zeros(self.nb_movies)   
-        masks = torch.zeros(self.nb_movies)
-        genres = torch.zeros(self.nb_movies)
-        # Targets and Masks
-        for i in range(len(l_movies)):
-            targets[l_movies[i]] = l_ratings[i]
-            masks[l_movies[i]] = 1.0     
-        # Manage noise
-        if self.noise == 'uniform' or self.noise == 'one':
-            if self.noise == 'uniform':
-                p = torch.randint(0, len(l_movies)+1, (1,)).type(torch.uint8)
-            if self.noise == 'one':
-                p = torch.randint(len(l_movies)-1, len(l_movies), (1,)).type(torch.uint8)
-            ind_to_take = torch.randperm(len(l_movies))[:p]
-            l_movies = torch.IntTensor(l_movies)
-            l_ratings = torch.IntTensor(l_ratings)
-            l_movies = l_movies[ind_to_take]
-            l_ratings = l_ratings[ind_to_take]
-        # Inputs
-        for i in range(len(l_movies)):
-            ratings[l_movies[i]] = l_ratings[i]
-        # Genres
-        for m in l_genres:
-            genres[m] = 1.0
-        # Include popularity in genres
-        genres = genres * self.popularity
-        # Take top 100 movies
-        genres_cut = torch.zeros(self.nb_movies)
-        genres_cut[genres.topk(100)[1]] = genres.topk(100)[0]
-        genres = genres_cut
-        
-        # Normalize vector
-        genres = torch.nn.functional.normalize(genres, dim=0)
-        
-        return masks, (ratings, genres), targets
+
+#class RatingsGenresNormalizedDataset(data.Dataset):
+#    """
+#    ****** SAME AS RatingsGenresNormalizedDataset BUT WITH GENRES VECTORS OF LENGHT ONE ******
+#    
+#    INPUT: 
+#        R_list is movie list. Format [ [UserID, [movies uID], [ratings 0-1]] ].  Each element of the main list 
+#        corresponds to one user's ratings for each movie.
+#        
+#        G_list is genres list. Format [ [UserID, [movies UiD of genres mentionnned in ConvID = UserID]] ]. 
+#    
+#        If noise='none', all inputs are returned
+#        If noise='uniform', returns input with p ratings only, where p follows uniform(1, nb of ratings)
+#        If noise='one", returns input with one rating missing (for evaluation)
+#    
+#    RETUNRS:
+#        A sample (INPUT) and a targeted value (TARGET) corresponding to movies ratings.
+#        Also returns a MASK, which is a list of bool of len = nb_movies with 1.0 for movies rated by user, 0.0 elsewhere.
+#        Finally, returns a GENRES vector with one for all movies having ALL genres mentionned by User.
+#
+#    """
+#    
+#    def __init__(self, R_list, G_list, nb_movies, popularity, noise='none'):
+#        self.R_list = R_list
+#        self.G_list = G_list
+#        self.nb_movies = nb_movies
+#        self.popularity = popularity
+#        self.noise = noise
+#        
+#    def __len__(self):
+#        "Total number of samples. Here one sample is one user's ratings"
+#        return len(self.R_list)
+#
+#    def __getitem__(self, index):
+#        "Generate one sample of data."
+#        # Get list of movies and ratings for user number (=index) 
+#        R_UserID, l_movies, l_ratings = self.R_list[index]
+#        G_UserID, l_genres = self.G_list[index]
+#        # Test if same UserID
+#        if R_UserID != G_UserID:
+#            raise ValueError("Not the same UserID", R_UserID, G_UserID)
+#        # Init
+#        ratings = torch.zeros(self.nb_movies)
+#        targets = torch.zeros(self.nb_movies)   
+#        masks = torch.zeros(self.nb_movies)
+#        genres = torch.zeros(self.nb_movies)
+#        # Targets and Masks
+#        for i in range(len(l_movies)):
+#            targets[l_movies[i]] = l_ratings[i]
+#            masks[l_movies[i]] = 1.0     
+#        # Manage noise
+#        if self.noise == 'uniform' or self.noise == 'one':
+#            if self.noise == 'uniform':
+#                p = torch.randint(0, len(l_movies)+1, (1,)).type(torch.uint8)
+#            if self.noise == 'one':
+#                p = torch.randint(len(l_movies)-1, len(l_movies), (1,)).type(torch.uint8)
+#            ind_to_take = torch.randperm(len(l_movies))[:p]
+#            l_movies = torch.IntTensor(l_movies)
+#            l_ratings = torch.IntTensor(l_ratings)
+#            l_movies = l_movies[ind_to_take]
+#            l_ratings = l_ratings[ind_to_take]
+#        # Inputs
+#        for i in range(len(l_movies)):
+#            ratings[l_movies[i]] = l_ratings[i]
+#        # Genres
+#        for m in l_genres:
+#            genres[m] = 1.0
+#        # Include popularity in genres
+#        genres = genres * self.popularity
+#        # Take top 100 movies
+#        genres_cut = torch.zeros(self.nb_movies)
+#        genres_cut[genres.topk(100)[1]] = genres.topk(100)[0]
+#        genres = genres_cut
+#        
+#        # Normalize vector
+#        genres = torch.nn.functional.normalize(genres, dim=0)
+#        
+#        return masks, (ratings, genres), targets
+
+
+
+
+
+#class RnGChronoDataset(data.Dataset):
+#    """    
+#    
+#    ****** Now inputs and targets are seperated ******
+#    
+#    
+#    INPUT: 
+#        RnGlist format is:
+#            ["ConvID", [(UiD, Rating) mentionned], ["genres"], [(UiD, Rating) to be mentionned]]
+#        top_cut is the number of movies in genres vector
+#    
+#    RETUNRS:
+#        masks, (inputs, genres) and targets. 
+#        Genres is vector with value for top_cut movies of intersection of genres mentionned 
+#        by user, normalized.
+#
+#    """
+#    
+#    def __init__(self, RnGlist, dict_genresInter_idx_UiD, nb_movies, popularity, incl_genres=True, \
+#                 nonChrono=False, noise=False, top_cut=100):
+#        self.RnGlist = RnGlist
+#        self.dict_genresInter_idx_UiD = dict_genresInter_idx_UiD
+#        self.nb_movies = nb_movies
+#        self.popularity = popularity
+#        self.incl_genres = incl_genres
+#        self.nonChrono = nonChrono
+#        self.noise = noise
+#        self.top_cut = top_cut
+#        
+#    def __len__(self):
+#        "Total number of samples. Here one sample corresponds to a new mention in Conversation"
+#        return len(self.RnGlist)
+#
+#    def __getitem__(self, index):
+#        "Generate one sample of data."
+#        # Get list of movies and ratings for user number (=index) 
+#        ConvID, l_inputs, l_genres, l_targets = self.RnGlist[index]
+#        
+#        # Init
+#        inputs = torch.zeros(self.nb_movies)
+#        targets = torch.zeros(self.nb_movies)   
+#        masks_inputs = torch.zeros(self.nb_movies)
+#        masks_targets = torch.zeros(self.nb_movies)
+#        genres = torch.zeros(self.nb_movies)
+#
+#        # Targets 
+#        # Case of non-chrono data made chrono (eg: ML)
+#        if self.nonChrono:
+#            l_targets = l_inputs
+#        for uid, rating in l_targets:
+#            targets[uid] = rating
+#            masks_targets[uid] = 1
+#        
+#        # Manage noise
+#        if self.noise:
+#            min_input = max(2, len(l_inputs))    # Insure p choice is at least 1
+#            max_input = min(7, min_input)        # Insure not more than qt in l_inputs
+#            p = torch.randint(1, max_input, (1,)).type(torch.uint8)  
+#            ind_to_take = torch.randperm(len(l_inputs))[:p]
+#            l_inputs = torch.IntTensor(l_inputs)
+#            l_inputs = l_inputs[ind_to_take]
+#        
+#        # Inputs
+#        for uid, rating in l_inputs:
+#            inputs[uid] = rating
+#            # If nonChrono, masks_inputs at 0 because all in masks_targets
+#            if not self.nonChrono:
+#                masks_inputs[uid] = 1
+#        
+#        # Genres
+#        if self.incl_genres:
+#            # Turn list of genres into string
+#            str_genres = str(l_genres)
+#            # Try - if no movies of that genres (key error)
+#            try:
+#                genres_idx, l_genres_uid = self.dict_genresInter_idx_UiD[str_genres] 
+#            except:
+#       #         print('No movie with genres:', str_genres)
+#                genres_idx = 1
+#            # If there is a genres...   (no else needed, since already at 0)
+#            if genres_idx != 1:
+#                for uid in l_genres_uid:
+#                    genres[uid] = 1.0
+#                    
+#                """normalization and popularity"""
+#                # Include popularity in genres
+#                genres = genres * self.popularity
+#                # Take top 100 movies
+#                genres_cut = torch.zeros(self.nb_movies)
+#                genres_cut[genres.topk(self.top_cut)[1]] = genres.topk(self.top_cut)[0]
+#                genres = genres_cut  
+#                # Normalize vector
+#                genres = torch.nn.functional.normalize(genres, dim=0)
+#        
+#        
+#        return (masks_inputs, masks_targets), (inputs, (genres_idx, genres)), targets
+
 
 
 
@@ -237,34 +339,43 @@ class RatingsGenresNormalizedDataset(data.Dataset):
 class RnGChronoDataset(data.Dataset):
     """    
     
-    ****** Now inputs and targets are seperated ******
+    ****** Now inputs and targets are seperated in data ******
     
     
     INPUT: 
         RnGlist format is:
             ["ConvID", [(UiD, Rating) mentionned], ["genres"], [(UiD, Rating) to be mentionned]]
         top_cut is the number of movies in genres vector
+        If data from a non-chrono dataset (eg: ML), all data in mentionned, to be mentionned empty.
     
     RETUNRS:
         masks, (inputs, genres) and targets. 
         Genres is vector with value for top_cut movies of intersection of genres mentionned 
-        by user, normalized.
+        by user, normalized (or deduced for ML).
 
     """
     
-    def __init__(self, RnGlist, dict_genresInter_idx_UiD, nb_movies, popularity, top_cut=100):
+    def __init__(self, RnGlist, dict_genresInter_idx_UiD, nb_movies, popularity, DEVICE, \
+                 incl_genres=True, merge_data=True, noise=False, top_cut=100):
         self.RnGlist = RnGlist
         self.dict_genresInter_idx_UiD = dict_genresInter_idx_UiD
         self.nb_movies = nb_movies
         self.popularity = popularity
+        self.DEVICE = DEVICE
+        self.incl_genres = incl_genres
+        self.merge_data = merge_data
+        self.noise = noise
         self.top_cut = top_cut
+        
         
     def __len__(self):
         "Total number of samples. Here one sample corresponds to a new mention in Conversation"
         return len(self.RnGlist)
 
+
     def __getitem__(self, index):
         "Generate one sample of data."
+        
         # Get list of movies and ratings for user number (=index) 
         ConvID, l_inputs, l_genres, l_targets = self.RnGlist[index]
         
@@ -274,43 +385,63 @@ class RnGChronoDataset(data.Dataset):
         masks_inputs = torch.zeros(self.nb_movies)
         masks_targets = torch.zeros(self.nb_movies)
         genres = torch.zeros(self.nb_movies)
+
+        # If we merge data (mentionned and to be mentionned)
+        if self.merge_data:
+            sum_i_t = l_inputs + l_targets
+            l_inputs = sum_i_t
+            l_targets = sum_i_t
+        
+        # Manage noise
+        if self.noise:
+            min_input = max(2, len(l_inputs))    # Insure p choice is at least 1
+            max_input = min(7, min_input)        # Insure not more than qt in l_inputs
+            p = torch.randint(1, max_input, (1,)).type(torch.uint8)  
+            ind_to_take = torch.randperm(len(l_inputs))[:p]
+            l_inputs = torch.IntTensor(l_inputs)
+            l_inputs = l_inputs[ind_to_take]
         
         # Inputs
         for uid, rating in l_inputs:
             inputs[uid] = rating
             masks_inputs[uid] = 1
-        
+                
         # Targets 
         for uid, rating in l_targets:
             targets[uid] = rating
             masks_targets[uid] = 1
         
         # Genres
-        # Turn list of genres into string
-        str_genres = str(l_genres)
-        # Try - if no movies of that genres (key error)
-        try:
-            genres_idx, l_genres_uid = self.dict_genresInter_idx_UiD[str_genres] 
-        except:
-   #         print('No movie with genres:', str_genres)
-            genres_idx = 1
-        # If there is a genres...   (no else needed, since already at 0)
-        if genres_idx != 1:
-            for uid in l_genres_uid:
-                genres[uid] = 1.0
-                
-            """normalization and popularity"""
-            # Include popularity in genres
-            genres = genres * self.popularity
-            # Take top 100 movies
-            genres_cut = torch.zeros(self.nb_movies)
-            genres_cut[genres.topk(self.top_cut)[1]] = genres.topk(self.top_cut)[0]
-            genres = genres_cut  
-            # Normalize vector
-            genres = torch.nn.functional.normalize(genres, dim=0)
+        if self.incl_genres:
+            # Turn list of genres into string
+            str_genres = str(l_genres)
+            # Try - if no movies of that genres (key error)
+            try:
+                genres_idx, l_genres_uid = self.dict_genresInter_idx_UiD[str_genres] 
+            except:
+       #         print('No movie with genres:', str_genres)
+                genres_idx = 1
+            # If there is a genres...   (no else needed, since already at 0)
+            if genres_idx != 1:
+                for uid in l_genres_uid:
+                    genres[uid] = 1.0
+                    
+                """normalization and popularity"""
+                # Include popularity in genres
+                genres = genres * self.popularity
+                # Take top 100 movies
+                genres_cut = torch.zeros(self.nb_movies)
+                genres_cut[genres.topk(self.top_cut)[1]] = genres.topk(self.top_cut)[0]
+                genres = genres_cut  
+                # Normalize vector
+                genres = torch.nn.functional.normalize(genres, dim=0)
         
         
-        return (masks_inputs, masks_targets), (inputs, (genres_idx, genres)), targets
+        return (masks_inputs.to(self.DEVICE), masks_targets.to(self.DEVICE)), \
+               (inputs.to(self.DEVICE), (genres_idx, genres.to(self.DEVICE))), \
+               targets.to(self.DEVICE)
+
+
 
 
 
@@ -325,8 +456,7 @@ TRAINING AND EVALUATION
 
 
 
-def TrainReconstruction(train_loader, model, criterion, optimizer, weights_factor,\
-                        DEVICE, completion):
+def TrainReconstruction(train_loader, model, criterion, optimizer, weights_factor, completion):
     model.train()
     train_loss = 0
     nb_batch = len(train_loader) * completion / 100
@@ -351,37 +481,9 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
         if batch_idx % 100 == 0: 
             print('Batch {} out of {}.  Loss:{}'.format(batch_idx, nb_batch,\
                   train_loss/(batch_idx+1)))  
-        
-        targets = targets.to(DEVICE)
-        
-        # Test if list format == Genres Case so inputs has genres also 
-        # and can't put a list .to(DEVICE)
-        if type(inputs) == list:
-            inputs[0] = inputs[0].to(DEVICE)
-            # Chrono Case: 
-            if type(inputs[1]) == list:
-                # ...cover genres idx
-                inputs[1][0] = inputs[1][0].to(DEVICE)
-                inputs[1][1] = inputs[1][1].to(DEVICE)
-                # cover masks seperation
-                masks[0] = masks[0].to(DEVICE)
-                masks[1] = masks[1].to(DEVICE)
-                # ...add inputs and targets
-                sum_i_t = (inputs[0] + targets).clone()
-                inputs[0] = sum_i_t
-                targets = sum_i_t
-                masks = masks[0] + masks[1]
-            # Genres Case, but not chrono
-            else:
-                inputs[1] = inputs[1].to(DEVICE)
-                masks = masks.to(DEVICE)
-        # Basic case
-        else: 
-            inputs = inputs.to(DEVICE)
-            
-        
-        # Add weights on targets rated 0 because outnumbered 94 times by targets 1
-        weights = (masks == 1) * (targets == 0) * weights_factor + \
+                
+        # Add weights on targets rated 0 because outnumbered by targets 1
+        weights = (masks[1] == 1) * (targets == 0) * weights_factor + \
                   torch.ones_like(targets, dtype=torch.uint8)
         criterion.weight = weights.float()
         
@@ -416,18 +518,18 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
      
         
 
-        loss = (criterion(pred, targets) * masks).sum()
+        loss = (criterion(pred, targets) * masks[1]).sum()
         assert loss >= 0, 'Getting a negative loss in training - IMPOSSIBLE'
-        # Using only predictions of movies that were rated
+        # Using only predictions of movies that were rated in targets
      #   pred = pred * masks
-        nb_ratings = masks.sum()
+        nb_ratings = masks[1].sum()
         loss /= nb_ratings
         loss.backward()
         optimizer.step()
         
         # Remove weights for other evaluations
         criterion.weight = None
-        loss_no_weights = (criterion(pred, targets) * masks).sum() 
+        loss_no_weights = (criterion(pred, targets) * masks[1]).sum() 
         loss_no_weights /= nb_ratings
         train_loss += loss_no_weights
         
@@ -437,7 +539,7 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
 
 
 
-def EvalReconstruction(valid_loader, model, criterion, DEVICE, completion):
+def EvalReconstruction(valid_loader, model, criterion, completion):
     model.eval()
     eval_loss = 0
     nb_batch = len(valid_loader) * completion / 100
@@ -454,42 +556,15 @@ def EvalReconstruction(valid_loader, model, criterion, DEVICE, completion):
             if batch_idx % 100 == 0: 
                 print('Batch {} out of {}.  Loss:{}'.format(batch_idx, nb_batch,\
                       eval_loss/(batch_idx+1)))  
-        
-            targets = targets.to(DEVICE)
-        
-            # Test if list format == Genres Case so inputs has genres also 
-            # and can't put a list .to(DEVICE)
-            if type(inputs) == list:
-                inputs[0] = inputs[0].to(DEVICE)
-                # Chrono Case: 
-                if type(inputs[1]) == list:
-                    # ...cover genres idx
-                    inputs[1][0] = inputs[1][0].to(DEVICE)
-                    inputs[1][1] = inputs[1][1].to(DEVICE)
-                    # cover masks seperation
-                    masks[0] = masks[0].to(DEVICE)
-                    masks[1] = masks[1].to(DEVICE)
-                    # ...add inputs and targets
-                    sum_i_t = (inputs[0] + targets).clone()
-                    inputs[0] = sum_i_t
-                    targets = sum_i_t
-                    masks = masks[0] + masks[1]
-                # Genres Case, but not chrono
-                else:
-                    inputs[1] = inputs[1].to(DEVICE)
-                    masks = masks.to(DEVICE)
-            # Basic case
-            else: 
-                inputs = inputs.to(DEVICE)
-                
-                
+    
             pred = model(inputs)  
             
-            # Using only movies that were rated
+            # Using only movies that were rated in targets
         #   pred = pred * masks
-            nb_ratings = masks.sum()
+            nb_ratings = masks[1].sum()
        #     del(masks)
-            loss = (criterion(pred, targets) * masks).sum()
+            loss = (criterion(pred, targets) * masks[1]).sum()
+            assert loss >= 0, 'Getting a negative loss in eval - IMPOSSIBLE'
             loss = loss / nb_ratings
             eval_loss += loss
     
@@ -499,150 +574,150 @@ def EvalReconstruction(valid_loader, model, criterion, DEVICE, completion):
 
 
 
-def EvalPrediction(loader, model, criterion, DEVICE, completion):
-    """
-    Takes a list of ratings from a user (len = nb_movies) and a list of movies uID
-    For each movie m in l_movies, predicts m's rating according to rest of movies in l_movies
-    Returns a list of errors for each prediction (len = len(l_movies))
-    
-    ******* LOADER must be of BATCH SIZE == 1 **********
-    """
-    model.eval()
-    l_loss = []
-    l_rank_liked = []
-    l_rank_disliked = []
-    nb_batch = len(loader) * completion / 100
-    
-    with torch.no_grad():
-        # For each user
-        for batch_idx, (masks, inputs, _) in enumerate(loader):
-            
-            # Early stopping 
-            if batch_idx > nb_batch or nb_batch == 0: 
-                print('EARLY stopping')
-                break
-                
-            # Print Update
-            if batch_idx % 100 == 0:
-                print('Batch {} out of {}.'.format(batch_idx, nb_batch))     
-            
-            # For each movie
-            for m, mask in enumerate(masks[0]):           # [0] because loader returns list of list (batches usually > 1)
-                if mask == 1:
-                    inputs = inputs.to(DEVICE)
-                    # Get the rating for movie m
-                    r = inputs[0][m].clone().detach()         # To insure deepcopy and not reference and no backprop
-                    # "Hide" the rating of movie m
-                    inputs[0][m] = 0
-                    # TODO ############################ THIS IS WHERE WE SHOULD UPDATE INPUTS WITH GENRES (or other KB)
-                    # Get the predictions
-                    pred = model(inputs)
-                 #   pred = torch.ones_like(inputs).to(DEVICE)
-                    # Put the ratings in original condition  
-                    # TODO: ######## LATER REMOVE UPDATES FROM KB
-                    inputs[0][m] = r
-                    # Evaluate error
-                    # error = (r - pred[0][m])**2
-                    error = criterion(pred[0][m], r)
-                    l_loss.append(error.item())
-                    # Ranking of this prediction among all predictions
-                    
-                    
-                    """ Adding Sigmoid to pred if BCELogits used """
+#def EvalPrediction(loader, model, criterion, DEVICE, completion):
+#    """
+#    Takes a list of ratings from a user (len = nb_movies) and a list of movies uID
+#    For each movie m in l_movies, predicts m's rating according to rest of movies in l_movies
+#    Returns a list of errors for each prediction (len = len(l_movies))
+#    
+#    ******* LOADER must be of BATCH SIZE == 1 **********
+#    """
+#    model.eval()
+#    l_loss = []
+#    l_rank_liked = []
+#    l_rank_disliked = []
+#    nb_batch = len(loader) * completion / 100
+#    
+#    with torch.no_grad():
+#        # For each user
+#        for batch_idx, (masks, inputs, _) in enumerate(loader):
+#            
+#            # Early stopping 
+#            if batch_idx > nb_batch or nb_batch == 0: 
+#                print('EARLY stopping')
+#                break
+#                
+#            # Print Update
+#            if batch_idx % 100 == 0:
+#                print('Batch {} out of {}.'.format(batch_idx, nb_batch))     
+#            
+#            # For each movie
+#            for m, mask in enumerate(masks[0]):           # [0] because loader returns list of list (batches usually > 1)
+#                if mask == 1:
+#                    inputs = inputs.to(DEVICE)
+#                    # Get the rating for movie m
+#                    r = inputs[0][m].clone().detach()         # To insure deepcopy and not reference and no backprop
+#                    # "Hide" the rating of movie m
+#                    inputs[0][m] = 0
+#                    # TODO ############################ THIS IS WHERE WE SHOULD UPDATE INPUTS WITH GENRES (or other KB)
+#                    # Get the predictions
+#                    pred = model(inputs)
+#                 #   pred = torch.ones_like(inputs).to(DEVICE)
+#                    # Put the ratings in original condition  
+#                    # TODO: ######## LATER REMOVE UPDATES FROM KB
+#                    inputs[0][m] = r
+#                    # Evaluate error
+#                    # error = (r - pred[0][m])**2
+#                    error = criterion(pred[0][m], r)
+#                    l_loss.append(error.item())
+#                    # Ranking of this prediction among all predictions
+#                    
+#                    
+#                    """ Adding Sigmoid to pred if BCELogits used """
+##                    if model.model_pre.lla == 'none':
+##                        pred = torch.nn.Sigmoid()(pred)
+#                    """ """
+#                    
+#     #               ranks = (torch.sort(pred[0][Settings.l_ReDUiD], descending=True)[0] == pred[0][m]).nonzero()
+#                    ranks = (torch.sort(pred[0], descending=True)[0] == pred[0][m]).nonzero()
+#                 #   print("Value of rating (r) is:", r)
+#                    if r == 1.0:
+#                 #       print("Added to the liked movies ranking")
+#                        l_rank_liked.append(ranks[0,0].item())
+#                    elif r == 0.0:
+#                 #       print("Added to the DISliked movies ranking")
+#                        l_rank_disliked.append(ranks[0,0].item())
+#
+#                    
+#    l_loss = np.array(l_loss)
+#    l_rank_liked = np.array(l_rank_liked)
+#    l_rank_disliked= np.array(l_rank_disliked)
+#    mean_error = np.mean(l_loss)
+#    mean_rank_liked = np.mean(l_rank_liked)
+#    mean_rank_disliked = np.mean(l_rank_disliked)
+#    
+#    return mean_error, mean_rank_liked, mean_rank_disliked
+
+
+#def EvalPredictionGenres(loader, model, criterion, DEVICE):
+#    """
+#    Takes a list of TUPLES (ratings AND GENRES) from a user (len = nb_movies) and a list of movies uID
+#    For each movie m in l_movies, predicts m's rating according to rest of movies in l_movies
+#    Returns a list of errors for each prediction (len = len(l_movies))
+#    
+#    ******* LOADER must be of BATCH SIZE == 1 **********
+#    """
+#    model.eval()
+#    l_loss = []
+#    l_rank_liked = []
+#    l_rank_disliked = []
+#    
+#    with torch.no_grad():
+#        # For each user
+#        for batch_idx, (masks, inputs, _) in enumerate(loader):
+#            # For each movie
+#            for m, mask in enumerate(masks[0]):           # [0] because loader returns list of list (batches usually > 1)
+#                if mask == 1:
+#                    inputs[0] = inputs[0].to(DEVICE)
+#                    inputs[1] = inputs[1].to(DEVICE)
+#                    # Get the rating for movie m
+#                    r = inputs[0][0][m].clone().detach()         # To insure deepcopy and not reference
+#                    # "Hide" the rating of movie m
+#                    inputs[0][0][m] = 0
+#                    # TODO ############################ THIS IS WHERE WE SHOULD UPDATE INPUTS WITH GENRES (or other KB)
+#                    # Get the predictions
+#                    pred = model(inputs)
+#                 #   pred = torch.ones_like(inputs).to(DEVICE)
+#                    # Put the ratings in original condition  
+#                    # TODO: ######## LATER REMOVE UPDATES FROM KB
+#                    inputs[0][0][m] = r
+#                    # Evaluate error
+#                    # error = (r - pred[0][m])**2
+#                    error = criterion(pred[0][m], r)
+#                    l_loss.append(error.item())
+#                    # Ranking of this prediction among all predictions. 
+#                    # ranks is a 2D array of size (nb of pred with same value as m, position of value)
+#                    
+#                    
+#                    """ Adding Sigmoid to pred if BCELogits used """
 #                    if model.model_pre.lla == 'none':
 #                        pred = torch.nn.Sigmoid()(pred)
-                    """ """
-                    
-     #               ranks = (torch.sort(pred[0][Settings.l_ReDUiD], descending=True)[0] == pred[0][m]).nonzero()
-                    ranks = (torch.sort(pred[0], descending=True)[0] == pred[0][m]).nonzero()
-                 #   print("Value of rating (r) is:", r)
-                    if r == 1.0:
-                 #       print("Added to the liked movies ranking")
-                        l_rank_liked.append(ranks[0,0].item())
-                    elif r == 0.0:
-                 #       print("Added to the DISliked movies ranking")
-                        l_rank_disliked.append(ranks[0,0].item())
-
-                    
-    l_loss = np.array(l_loss)
-    l_rank_liked = np.array(l_rank_liked)
-    l_rank_disliked= np.array(l_rank_disliked)
-    mean_error = np.mean(l_loss)
-    mean_rank_liked = np.mean(l_rank_liked)
-    mean_rank_disliked = np.mean(l_rank_disliked)
-    
-    return mean_error, mean_rank_liked, mean_rank_disliked
-
-
-def EvalPredictionGenres(loader, model, criterion, DEVICE):
-    """
-    Takes a list of TUPLES (ratings AND GENRES) from a user (len = nb_movies) and a list of movies uID
-    For each movie m in l_movies, predicts m's rating according to rest of movies in l_movies
-    Returns a list of errors for each prediction (len = len(l_movies))
-    
-    ******* LOADER must be of BATCH SIZE == 1 **********
-    """
-    model.eval()
-    l_loss = []
-    l_rank_liked = []
-    l_rank_disliked = []
-    
-    with torch.no_grad():
-        # For each user
-        for batch_idx, (masks, inputs, _) in enumerate(loader):
-            # For each movie
-            for m, mask in enumerate(masks[0]):           # [0] because loader returns list of list (batches usually > 1)
-                if mask == 1:
-                    inputs[0] = inputs[0].to(DEVICE)
-                    inputs[1] = inputs[1].to(DEVICE)
-                    # Get the rating for movie m
-                    r = inputs[0][0][m].clone().detach()         # To insure deepcopy and not reference
-                    # "Hide" the rating of movie m
-                    inputs[0][0][m] = 0
-                    # TODO ############################ THIS IS WHERE WE SHOULD UPDATE INPUTS WITH GENRES (or other KB)
-                    # Get the predictions
-                    pred = model(inputs)
-                 #   pred = torch.ones_like(inputs).to(DEVICE)
-                    # Put the ratings in original condition  
-                    # TODO: ######## LATER REMOVE UPDATES FROM KB
-                    inputs[0][0][m] = r
-                    # Evaluate error
-                    # error = (r - pred[0][m])**2
-                    error = criterion(pred[0][m], r)
-                    l_loss.append(error.item())
-                    # Ranking of this prediction among all predictions. 
-                    # ranks is a 2D array of size (nb of pred with same value as m, position of value)
-                    
-                    
-                    """ Adding Sigmoid to pred if BCELogits used """
-                    if model.model_pre.lla == 'none':
-                        pred = torch.nn.Sigmoid()(pred)
-                    """ """
-                    
-                    
-                    ranks = (torch.sort(pred[0][Settings.l_ReDUiD], descending=True)[0] == pred[0][m]).nonzero() + 1
-                 #   print("Value of rating (r) is:", r)
-                    if r == 1.0:
-                 #       print("Added to the liked movies ranking")
-                        l_rank_liked.append(ranks[0,0].item())
-                    elif r == 0.0:
-                 #       print("Added to the DISliked movies ranking")
-                        l_rank_disliked.append(ranks[0,0].item())
-                 #   print("number of predictions with same value", ranks.size()[0])
-                    
-    l_loss = np.array(l_loss)
-    l_rank_liked = np.array(l_rank_liked)
-    l_rank_disliked= np.array(l_rank_disliked)
-    mean_error = np.mean(l_loss)
-    mean_rank_liked = np.mean(l_rank_liked)
-    mean_rank_disliked = np.mean(l_rank_disliked)
-
-    return mean_error, mean_rank_liked, mean_rank_disliked
+#                    """ """
+#                    
+#                    
+#                    ranks = (torch.sort(pred[0][Settings.l_ReDUiD], descending=True)[0] == pred[0][m]).nonzero() + 1
+#                 #   print("Value of rating (r) is:", r)
+#                    if r == 1.0:
+#                 #       print("Added to the liked movies ranking")
+#                        l_rank_liked.append(ranks[0,0].item())
+#                    elif r == 0.0:
+#                 #       print("Added to the DISliked movies ranking")
+#                        l_rank_disliked.append(ranks[0,0].item())
+#                 #   print("number of predictions with same value", ranks.size()[0])
+#                    
+#    l_loss = np.array(l_loss)
+#    l_rank_liked = np.array(l_rank_liked)
+#    l_rank_disliked= np.array(l_rank_disliked)
+#    mean_error = np.mean(l_loss)
+#    mean_rank_liked = np.mean(l_rank_liked)
+#    mean_rank_disliked = np.mean(l_rank_disliked)
+#
+#    return mean_error, mean_rank_liked, mean_rank_disliked
 
 
 
 
-def EvalPredictionGenresRaw(loader, model, criterion, DEVICE, completion):
+def EvalPredictionGenresRaw(loader, model, criterion, completion):
     """
     Same as EvalPredictionGenres, but values returned are complete (not their mean)
     """
@@ -666,38 +741,23 @@ def EvalPredictionGenresRaw(loader, model, criterion, DEVICE, completion):
             # Print Update
             if batch_idx % 1000 == 0:
                 print('Batch {} out of {}.'.format(batch_idx, nb_batch))     
-            
-            
-            # Prepare data for cuda
-            # Manage Chrono Case
-            if type(masks) == list: 
-                masks = masks[0] + masks[1]
-            inputs[0] = inputs[0].to(DEVICE)
-            # Chrono Case
-            if type(inputs[1]) == list:
-                inputs[1][0] = inputs[1][0].to(DEVICE)
-                inputs[1][1] = inputs[1][1].to(DEVICE)
-                targets = targets.to(DEVICE)
-                inputs[0] = inputs[0] + targets
-            else:
-                inputs[1] = inputs[1].to(DEVICE)
+
            
             count_pred = 0
-            # For each movie
-            for m, mask in enumerate(masks[0]):           # [0] because loader returns list of list (batches usually > 1)
+            # For each movie in inputs
+            for i, mask in enumerate(masks[0][0]):        # second [0] because loader returns 'list of list' (batches usually > 1)
                 if mask == 1:                             # If a rated movie    
                     
-
-                    # Get the rating for movie m
-                    r = inputs[0][0][m].clone().detach()         # To insure deepcopy and not reference
+                    # Get the rating for movie i
+                    r = inputs[0][0][i].clone().detach()         # To insure deepcopy and not reference
                     # "Hide" the rating of movie m
-                    inputs[0][0][m] = 0
+                    inputs[0][0][i] = 0
                     # Get the predictions
                     pred = model(inputs)
                     # Put the ratings in original condition  
-                    inputs[0][0][m] = r
+                    inputs[0][0][i] = r
                     # Evaluate error
-                    error = criterion(pred[0][m], r)
+                    error = criterion(pred[0][i], r)
                     l_loss.append(error.item())
                     # Ranking of this prediction among all predictions. 
                     # ranks is a 2D array of size (nb of pred with same value as m, position of value)
@@ -708,8 +768,8 @@ def EvalPredictionGenresRaw(loader, model, criterion, DEVICE, completion):
                         pred = torch.nn.Sigmoid()(pred)
                     """ """
                     
-                    
-                    ranks = (torch.sort(pred[0][Settings.l_ReDUiD], descending=True)[0] == pred[0][m]).nonzero() + 1
+                 #   ranks = (torch.sort(pred[0][Settings.l_ReDUiD], descending=True)[0] == pred[0][i]).nonzero() + 1
+                    ranks = (torch.sort(pred[0], descending=True)[0] == pred[0][i]).nonzero() + 1
                  #   print("Value of rating (r) is:", r)
                     if r == 1.0:
                  #       print("Added to the liked movies ranking")
@@ -721,8 +781,8 @@ def EvalPredictionGenresRaw(loader, model, criterion, DEVICE, completion):
                     
                  # Early stoopping
                     count_pred += 1 
-                    if count_pred > len(masks[0].nonzero()) * completion / 100: 
-                        print('stop at {} prediction for user'.format(count_pred), len(masks[0].nonzero()))
+                    if count_pred > len(masks[0][0].nonzero()) * completion / 100: 
+                     #   print('stop at {} prediction for user'.format(count_pred), len(masks[0][0].nonzero()))
                         break
 
                     
@@ -735,7 +795,7 @@ def EvalPredictionGenresRaw(loader, model, criterion, DEVICE, completion):
 
 
 
-def EvalPredictionRnGChrono(valid_loader, model, criterion, DEVICE, completion, topx=100):
+def EvalPredictionRnGChrono(valid_loader, model, criterion, completion, topx=100):
     """
     Prediction on targets = to be mentionned movies...
     
@@ -772,14 +832,7 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, DEVICE, completion, 
             if batch_idx % 10 == 0:
                 print('Batch {} out of {}.  Loss:{}'\
                       .format(batch_idx, nb_batch, eval_loss_with_genres/(batch_idx+1)))
-            
-            # Prepare data for cuda
-            inputs[0] = inputs[0].to(DEVICE)
-            inputs[1][0] = inputs[1][0].to(DEVICE)
-            inputs[1][1] = inputs[1][1].to(DEVICE)
-            masks[0] = masks[0].to(DEVICE)
-            masks[1] = masks[1].to(DEVICE)
-            targets = targets.to(DEVICE)     
+             
             
     # WITH GENRES
             # Make a pred
@@ -834,9 +887,9 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, DEVICE, completion, 
             
             
     # WITHOUT GENRES
-            # Make a pred with genres removed from inputs 
-            inputs[1][0] = torch.ones(inputs[0].size(0), dtype=torch.uint8).to(DEVICE)
-            inputs[1][1] = torch.zeros(inputs[0].size(0), 48272).to(DEVICE)
+            # Make a pred with genres removed from inputs. Genres indx at 1 and Genres UiD at 0 
+            inputs[1][0] = inputs[1][0] + 0 + 1
+            inputs[1][1] = inputs[1][1] * 0
             pred = model(inputs)  
             
             # LOSS - Using only movies to be montionned that were rated
