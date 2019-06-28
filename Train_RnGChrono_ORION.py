@@ -144,7 +144,7 @@ valid_dataset = Utils.RnGChronoDataset(valid_data, dict_genresInter_idx_UiD, \
 print('******* Creating dataloaders *******\n\n')    
 kwargs = {}
 if(args.DEVICE == "cuda"):
-    kwargs = {'num_workers': 1, 'pin_memory': True}
+    kwargs = {'num_workers': 0, 'pin_memory': True}
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,\
                                            shuffle=True, drop_last=True, **kwargs)
 valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch,\
