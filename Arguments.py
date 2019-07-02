@@ -30,7 +30,8 @@ parser.add_argument('--dataValid', type=str, metavar='', default='ReDialRnGChron
 parser.add_argument('--incl_genres', type=bool, metavar='', default=True, \
                     help='If False, no use genres (Dataset part empty for genres)')
 parser.add_argument('--merge_data', type=bool, metavar='', default=True, \
-                    help='If True, mentionned and to be mentionned data are added. Used in Dataset.')
+                    help='If True, mentionned and to be mentionned data are added. Used in Dataset \
+                    ALWAYS use False when for PredChrono.')
 
 
 # Training

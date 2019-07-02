@@ -214,7 +214,7 @@ for epoch in range(args.epoch):
         RnG_valid_gm_data = [[c,m,g,tbm] for c,m,g,tbm in valid_data if g != []]
         valid_gm_dataset = Utils.RnGChronoDataset(RnG_valid_gm_data, dict_genresInter_idx_UiD, nb_movies, \
                                                   popularity, args.DEVICE, args.incl_genres, False, args.noiseEval, args.top_cut)
-                                                                                # Nerver merge data
+                                                                                # False beacause: Nerver merge data
         valid_gm_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
         
         l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
@@ -398,6 +398,7 @@ for batch_idx, (masks, inputs, targets) in enumerate(train_loader):
     inputs[0] = inputs[0]
     inputs[1][0] = inputs[1][0]
     inputs[1][1] = inputs[1][1]
+    print(inputs[0], inputs[1][0], inputs[1][1], model.g.data)
     pred = model(inputs)
     if model.model_pre.lla == 'none':
         pred = torch.nn.Sigmoid()(pred)
