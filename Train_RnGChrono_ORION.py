@@ -218,7 +218,7 @@ for epoch in range(args.epoch):
         valid_gm_dataset = Utils.RnGChronoDataset(RnG_valid_gm_data, dict_genresInter_idx_UiD, nb_movies, \
                                                   popularity, args.DEVICE, args.incl_genres, False, args.noiseEval, args.top_cut)
                                                                                 # False because: Nerver merge data
-        valid_gm_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
+        valid_gm_loader = torch.utils.data.DataLoader(valid_gm_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
         
         l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
              Utils.EvalPredictionRnGChrono(valid_gm_loader, model, \
