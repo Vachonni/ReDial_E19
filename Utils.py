@@ -504,9 +504,9 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
         
         """ To look into pred values evolution during training"""
         if model.model_pre.lla == 'none':
-            pred_mean_values.append((torch.nn.Sigmoid()(pred)[:,Settings.l_ReDUiD]).mean())
+            pred_mean_values.append((torch.nn.Sigmoid()(pred.detach())[:,Settings.l_ReDUiD]).mean())
         else:
-            pred_mean_values.append((pred[:,Settings.l_ReDUiD]).mean())
+            pred_mean_values.append((pred.detach()[:,Settings.l_ReDUiD]).mean())
         """ """
         
         
@@ -531,7 +531,7 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
         criterion.weight = None
         loss_no_weights = (criterion(pred, targets) * masks[1]).sum() 
         loss_no_weights /= nb_ratings
-        train_loss += loss_no_weights
+        train_loss += loss_no_weights.detach()
         
     train_loss /= nb_batch
         
