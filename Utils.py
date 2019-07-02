@@ -13,12 +13,12 @@ Classes and functions for ReDial project.
 import numpy as np
 from torch.utils import data
 import torch
-import nltk
+#import nltk
 import matplotlib.pyplot as plt
 from statistics import mean
 
 
-import Settings
+#import Settings
 
 
 
