@@ -773,12 +773,12 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                     """ """
                     
                  #   ranks = (torch.sort(pred[0][Settings.l_ReDUiD], descending=True)[0] == pred[0][i]).nonzero() + 1
-                    ranks_old = (torch.sort(pred[0], descending=True)[0] == pred[0][i]).nonzero() + 1
+#                    ranks_old = (torch.sort(pred[0], descending=True)[0] == pred[0][i]).nonzero() + 1
                     """ Trying to use function Ranks for consistency"""
                     ranks, _, _, _, _ = Ranks(pred[0], pred[0][i].view(-1))
                     ranks = torch.from_numpy(ranks).view(1,-1)
-                    if (ranks_old[0,0] == ranks[0,0].long()).all().sum() != 1:
-                        print('\n\n** DIFFERENT RANKS **',ranks_old[0,0], ranks[0,0].long(),'\n\n')
+#                    if (ranks_old[0,0] == ranks[0,0].long()).all().sum() != 1:
+#                        print('\n\n** DIFFERENT RANKS **',ranks_old[0,0], ranks[0,0].long(),'\n\n')
                     """ """
                  #   print("Value of rating (r) is:", r)
                     if r == 1.0:
