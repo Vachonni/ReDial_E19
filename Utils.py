@@ -4,7 +4,7 @@
 Created on Sat Dec  8 12:53:48 2018
 
 
-Classes and function for ReDial project.
+Classes and functions for ReDial project.
 
 
 @author: nicholas
@@ -346,7 +346,7 @@ class RnGChronoDataset(data.Dataset):
         RnGlist format is:
             ["ConvID", [(UiD, Rating) mentionned], ["genres"], [(UiD, Rating) to be mentionned]]
         top_cut is the number of movies in genres vector
-        If data from a non-chrono dataset (eg: ML), all data in mentionned, to be mentionned empty.
+        If data from a non-chrono dataset (eg: ML), all data in mentionned (to be mentionned empty).
     
     RETUNRS:
         masks, (inputs, genres) and targets. 
@@ -769,7 +769,13 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                     """ """
                     
                  #   ranks = (torch.sort(pred[0][Settings.l_ReDUiD], descending=True)[0] == pred[0][i]).nonzero() + 1
-                    ranks = (torch.sort(pred[0], descending=True)[0] == pred[0][i]).nonzero() + 1
+                    ranks_old = (torch.sort(pred[0], descending=True)[0] == pred[0][i]).nonzero() + 1
+                    """ Trying to use function Ranks for consistency"""
+                    ranks, _, _, _, _ = Ranks(pred[0], pred[0][i].view(-1))
+                    ranks = torch.from_numpy(ranks).view(1,-1)
+                    if (ranks_old[0,0] == ranks[0,0].long()).all().sum() != 1:
+                        print('\n\n** DIFFERENT RANKS **',ranks_old[0,0], ranks[0,0].long(),'\n\n')
+                    """ """
                  #   print("Value of rating (r) is:", r)
                     if r == 1.0:
                  #       print("Added to the liked movies ranking")
@@ -957,92 +963,92 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, completion, topx=100
 
 
 
-"""
-
-CLASSES
-
-"""
-
-
-class Conversation:
-    """
-    Class to work with the original Conversation Data from ReDial
-    """
-    
-    def __init__(self, json):
-        
-        self.json = json
-        self.id = json["conversationId"]
-        self.movie_mentions = [k for k in json["movieMentions"]]
-        self.movie_seek_liked = [m for m in json["initiatorQuestions"] if \
-                                 json["initiatorQuestions"][m]["liked"] == 1 and \
-                                 json["initiatorQuestions"][m]["liked"] == 1]
-        self.movie_seek_notliked = [m for m in json["initiatorQuestions"] if \
-                                   json["initiatorQuestions"][m]["liked"] == 0 and \
-                                   json["initiatorQuestions"][m]["liked"] == 0]
-        self.seek_wId = self.json["initiatorWorkerId"]
-        self.recom_wId = self.json["respondentWorkerId"]
-    
-    
-            
-    def getSeekRecomText(self):
-        self.seek_text = []
-        self.recom_text = []
-        
-        for msg in self.json["messages"]:
-            if msg["senderWorkerId"] == self.seek_wId:
-                self.seek_text.append(msg["text"])
-            else:
-                self.recom_text.append(msg["text"])
-                               
-                
-    def getSeekerGenres(self, genres_to_find):
-        # Get unique genres mentionned in all ut of seekers 
-        self.genres_seek = getGenresListOfTextToOneList(self.seek_text, genres_to_find)
-
-
-def getGenresFromOneText(text, genres_to_find):
-    """
-    Take a string
-    Returns list of genres (strings) mentionned in text
-    
-    EXAMPLE: 
-        In: "Hey everybody, meet warren, he's a kid a bit drama"
-        Out: ['drama', 'kid']
-    """
-    genres_in_text = []
-    # Get list of unique words mentionned in text
-    words = nltk.word_tokenize(text.lower())
-    for g in genres_to_find:
-        for w in words:
-            if g == w: 
-                genres_in_text.append(g)
-    return genres_in_text
-
-
-
-def getGenresListOfTextToOneList(l_text, genres_to_find):
-    """
-    Take a list of strings
-    Returns list of unique genres (strings) mentionned in all texts
-    
-    EXAMPLE:
-        In: ["Hey everybody, meet warren, he's a kid a bit drama", 
-             "Sentence with no genre",
-             "Genres repeating, like drama",
-             "Horror movies are fun"]
-        Out: ['drama', 'kid', 'horror']
-    """
-        
-    l_genres = []
-    for text in l_text:
-        genres_in_text = getGenresFromOneText(text, genres_to_find)
-        # Concat only if genres retreived  
-        if genres_in_text != []:
-            l_genres += genres_in_text
-    # Return without duplicates
-    return list(set(l_genres))
-
+#"""
+#
+#CLASSES
+#
+#"""
+#
+#
+#class Conversation:
+#    """
+#    Class to work with the original Conversation Data from ReDial
+#    """
+#    
+#    def __init__(self, json):
+#        
+#        self.json = json
+#        self.id = json["conversationId"]
+#        self.movie_mentions = [k for k in json["movieMentions"]]
+#        self.movie_seek_liked = [m for m in json["initiatorQuestions"] if \
+#                                 json["initiatorQuestions"][m]["liked"] == 1 and \
+#                                 json["initiatorQuestions"][m]["liked"] == 1]
+#        self.movie_seek_notliked = [m for m in json["initiatorQuestions"] if \
+#                                   json["initiatorQuestions"][m]["liked"] == 0 and \
+#                                   json["initiatorQuestions"][m]["liked"] == 0]
+#        self.seek_wId = self.json["initiatorWorkerId"]
+#        self.recom_wId = self.json["respondentWorkerId"]
+#    
+#    
+#            
+#    def getSeekRecomText(self):
+#        self.seek_text = []
+#        self.recom_text = []
+#        
+#        for msg in self.json["messages"]:
+#            if msg["senderWorkerId"] == self.seek_wId:
+#                self.seek_text.append(msg["text"])
+#            else:
+#                self.recom_text.append(msg["text"])
+#                               
+#                
+#    def getSeekerGenres(self, genres_to_find):
+#        # Get unique genres mentionned in all ut of seekers 
+#        self.genres_seek = getGenresListOfTextToOneList(self.seek_text, genres_to_find)
+#
+#
+#def getGenresFromOneText(text, genres_to_find):
+#    """
+#    Take a string
+#    Returns list of genres (strings) mentionned in text
+#    
+#    EXAMPLE: 
+#        In: "Hey everybody, meet warren, he's a kid a bit drama"
+#        Out: ['drama', 'kid']
+#    """
+#    genres_in_text = []
+#    # Get list of unique words mentionned in text
+#    words = nltk.word_tokenize(text.lower())
+#    for g in genres_to_find:
+#        for w in words:
+#            if g == w: 
+#                genres_in_text.append(g)
+#    return genres_in_text
+#
+#
+#
+#def getGenresListOfTextToOneList(l_text, genres_to_find):
+#    """
+#    Take a list of strings
+#    Returns list of unique genres (strings) mentionned in all texts
+#    
+#    EXAMPLE:
+#        In: ["Hey everybody, meet warren, he's a kid a bit drama", 
+#             "Sentence with no genre",
+#             "Genres repeating, like drama",
+#             "Horror movies are fun"]
+#        Out: ['drama', 'kid', 'horror']
+#    """
+#        
+#    l_genres = []
+#    for text in l_text:
+#        genres_in_text = getGenresFromOneText(text, genres_to_find)
+#        # Concat only if genres retreived  
+#        if genres_in_text != []:
+#            l_genres += genres_in_text
+#    # Return without duplicates
+#    return list(set(l_genres))
+#
 
 
 
@@ -1055,38 +1061,38 @@ OTHERS
 """
 
 
-def Splitting(l_items, ratio_1, ratio_2, ratio_3):
-    """
-    Splitting a list of items randowly, into sublists, according to ratios.
-    Returns the 3 sublist (2 could be empty)
-    """
-    # Make sure ratios make sense
-    if ratio_1 + ratio_2 + ratio_3 != 1:
-        raise Exception("Total of ratios need to be 1, got {}".format(ratio_1 + ratio_2 + ratio_3))
-    size_1 = round(ratio_1 * len(l_items))
-    size_2 = round(ratio_2 * len(l_items))
-    np.random.shuffle(l_items)
-    sub_1 = l_items[:size_1]
-    sub_2 = l_items[size_1:size_1+size_2]
-    sub_3 = l_items[size_1+size_2:]
-
-    return sub_1, sub_2, sub_3 
-
-
-
-def SplittingDataset(full_dataset, ratio_train, ratio_valid, ratio_test):
-    """
-    Splitting a torch dataset into Train, Valid and Test sets randomly.
-    Returns the 3 torch datasets
-    """
-    train_size = round(ratio_train * len(full_dataset))
-    valid_size = round(ratio_valid * len(full_dataset))
-    test_size = len(full_dataset) - train_size - valid_size
-    # Split train & valid from test 
-    train_n_valid_dataset, test_dataset = torch.utils.data.random_split(full_dataset, [train_size + valid_size, test_size])
-    # Split train and valid
-    train_dataset, valid_dataset = torch.utils.data.random_split(train_n_valid_dataset, [train_size, valid_size])
-    return train_dataset, valid_dataset, test_dataset
+#def Splitting(l_items, ratio_1, ratio_2, ratio_3):
+#    """
+#    Splitting a list of items randowly, into sublists, according to ratios.
+#    Returns the 3 sublist (2 could be empty)
+#    """
+#    # Make sure ratios make sense
+#    if ratio_1 + ratio_2 + ratio_3 != 1:
+#        raise Exception("Total of ratios need to be 1, got {}".format(ratio_1 + ratio_2 + ratio_3))
+#    size_1 = round(ratio_1 * len(l_items))
+#    size_2 = round(ratio_2 * len(l_items))
+#    np.random.shuffle(l_items)
+#    sub_1 = l_items[:size_1]
+#    sub_2 = l_items[size_1:size_1+size_2]
+#    sub_3 = l_items[size_1+size_2:]
+#
+#    return sub_1, sub_2, sub_3 
+#
+#
+#
+#def SplittingDataset(full_dataset, ratio_train, ratio_valid, ratio_test):
+#    """
+#    Splitting a torch dataset into Train, Valid and Test sets randomly.
+#    Returns the 3 torch datasets
+#    """
+#    train_size = round(ratio_train * len(full_dataset))
+#    valid_size = round(ratio_valid * len(full_dataset))
+#    test_size = len(full_dataset) - train_size - valid_size
+#    # Split train & valid from test 
+#    train_n_valid_dataset, test_dataset = torch.utils.data.random_split(full_dataset, [train_size + valid_size, test_size])
+#    # Split train and valid
+#    train_dataset, valid_dataset = torch.utils.data.random_split(train_n_valid_dataset, [train_size, valid_size])
+#    return train_dataset, valid_dataset, test_dataset
     
 
 
@@ -1149,7 +1155,7 @@ def Ranks(all_values, values_to_rank, topx = 0):
     ranks = np.zeros(len(values_to_rank))
     
     for i,v in enumerate(values_to_rank):
-        ranks[i] = len(all_values[all_values >= v])
+        ranks[i] = len(all_values[all_values > v]) + 1
         
     ndcg = nDCG(ranks, topx, len(values_to_rank))
     
@@ -1184,6 +1190,7 @@ def ChronoPlot(d1, d0, title=''):
     plt.plot(d1x, d1y, label='with genres')
     plt.plot(d0x, d0y, label='without')
     plt.title(title, fontweight="bold")
+    plt.xlabel('Nb of mentionned movies before prediction')
     plt.legend()
     plt.show()
     
@@ -1207,6 +1214,7 @@ def EpochPlot(tup, title=''):
     plt.plot(y1, label='with genres')
     plt.plot(y0, label='without')
     plt.title(title, fontweight="bold")
+    plt.xlabel('epoch')
     plt.legend()
     plt.show()
 
