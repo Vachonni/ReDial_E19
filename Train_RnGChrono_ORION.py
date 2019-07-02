@@ -427,8 +427,6 @@ for batch_idx, (masks, inputs, targets) in enumerate(train_loader):
     plt.title('Histogram - Prediction values for one sample')
     plt.xlabel('Pred values')
     plt.ylabel('Qt.')
-    plt.savefig('histo.pdf')
-    plt.savefig('histo.png')
     plt.show()
     
     if batch_idx >= 0:break
