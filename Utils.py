@@ -1126,11 +1126,11 @@ def DCG(v, top):
 def nDCG(v, top, nb_values=0):
     """
     DCG normalized with what would be the best evaluation.
-    nb_values is the max number of good values there is. If not specified, 
-    assumed to be same as top.
+    
+    nb_values is the max number of good values there is. If not specified or bigger 
+    than top, assumed to be same as top.
     """
-    assert nb_values <= top, "nb_values can't be larger than top value"
-    if nb_values == 0: nb_values = top
+    if nb_values == 0 or nb_values > top: nb_values = top
     dcg = DCG(v, top)
     idcg = DCG(np.arange(nb_values)+1, top)
     
