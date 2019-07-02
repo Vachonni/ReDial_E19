@@ -503,10 +503,14 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
         
         
         """ To look into pred values evolution during training"""
+#        if model.model_pre.lla == 'none':
+#            pred_mean_values.append((torch.nn.Sigmoid()(pred.detach())[:,Settings.l_ReDUiD]).mean())
+#        else:
+#            pred_mean_values.append((pred.detach()[:,Settings.l_ReDUiD]).mean())
         if model.model_pre.lla == 'none':
-            pred_mean_values.append((torch.nn.Sigmoid()(pred.detach())[:,Settings.l_ReDUiD]).mean())
+            pred_mean_values.append((torch.nn.Sigmoid()(pred.detach())).mean())
         else:
-            pred_mean_values.append((pred.detach()[:,Settings.l_ReDUiD]).mean())
+            pred_mean_values.append((pred.detach()).mean())
         """ """
         
         
@@ -861,8 +865,9 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, completion, topx=100
             # NRR & NDCG
             # Need to evaluate each samples seperately, since diff number of targets
             # For ReDial Chrono Dataset
-            for i, sample in enumerate(pred[:,Settings.l_ReDUiD]):
-                
+#            for i, sample in enumerate(pred[:,Settings.l_ReDUiD]):
+            for i, sample in enumerate(pred):
+            
                 # Insure their is at least one target movie rated 1
                 # (if all rated 0, sample not considered)
                 if targets[i].sum() == 0: continue
@@ -915,7 +920,8 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, completion, topx=100
             # NRR & NDCG
             # Need to evaluate each samples seperately, since diff number of targets
             # For ReDial Chrono Dataset
-            for i, sample in enumerate(pred[:,Settings.l_ReDUiD]):
+#            for i, sample in enumerate(pred[:,Settings.l_ReDUiD]):
+            for i, sample in enumerate(pred):
                 
                 # Insure their is at least one target movie rated 1
                 # (if all rated 0, sample not considered)

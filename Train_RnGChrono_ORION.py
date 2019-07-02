@@ -189,6 +189,7 @@ for epoch in range(args.epoch):
     plt.plot(pred_mean_values)
     plt.title('Avrg Pred value by batch')
     plt.xlabel('batch')
+    plt.ylabel('avrg pred value')
     plt.show()
     """ """
     
@@ -320,11 +321,14 @@ else:
 print("Best reconstruction loss VALID: {}".format(valid_err))
 
 print("\nAvrg prediction error: {}".format(round(pred_err.mean(), 4)))
+#print("\nAvrg liked ranking: {}, which is in first {}%".format(int(pred_rank_liked.mean()), \
+#      round(pred_rank_liked.mean()/len(Settings.l_ReDUiD)*100, 1)))
+#print("Avrg disliked ranking: {}, which is in first {}%".format(int(pred_rank_disliked.mean()), \
+#      round(pred_rank_disliked.mean()/len(Settings.l_ReDUiD)*100, 1)))
 print("\nAvrg liked ranking: {}, which is in first {}%".format(int(pred_rank_liked.mean()), \
-      round(pred_rank_liked.mean()/len(Settings.l_ReDUiD)*100, 1)))
+      round(pred_rank_liked.mean()/nb_movies*100, 1)))
 print("Avrg disliked ranking: {}, which is in first {}%".format(int(pred_rank_disliked.mean()), \
-      round(pred_rank_disliked.mean()/len(Settings.l_ReDUiD)*100, 1)))
-
+      round(pred_rank_disliked.mean()/nb_movies*100, 1)))
 
 
 
@@ -390,12 +394,14 @@ if args.orion:
 plt.plot(pred_mean_values)
 plt.title('Avrg Pred value by batch')
 plt.xlabel('batch')
+plt.ylabel('avrg pred value')
 plt.show()
 
 
 plt.plot(valid_losses)
 plt.title('Valid losses by epoch')
 plt.xlabel('epoch')
+plt.ylabel('loss')
 plt.show()
 
 #%%
@@ -407,7 +413,7 @@ for batch_idx, (masks, inputs, targets) in enumerate(train_loader):
     pred = model(inputs)
     if model.model_pre.lla == 'none':
         pred = torch.nn.Sigmoid()(pred)
-    pred = pred[:,Settings.l_ReDUiD]
+ #   pred = pred[:,Settings.l_ReDUiD]
     pred = pred[0] #.mean(0)
     
     pred = pred.detach().cpu().numpy()
@@ -421,6 +427,8 @@ for batch_idx, (masks, inputs, targets) in enumerate(train_loader):
     plt.title('Histogram - Prediction values for one sample')
     plt.xlabel('Pred values')
     plt.ylabel('Qt.')
+    plt.savefig('histo.pdf')
+    plt.savefig('histo.png')
     plt.show()
     
     if batch_idx >= 0:break
