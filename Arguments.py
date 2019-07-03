@@ -40,11 +40,11 @@ parser.add_argument('--batch', type=int, metavar='', default=64, help='Batch siz
 parser.add_argument('--epoch', type=int, metavar='', default=1000, help='Number of epoch')
 parser.add_argument('--criterion', type=str, metavar='', default='BCEWLL', \
                     choices=['BCEWLL', 'BCE'], help='Loss function')
-parser.add_argument('--noiseTrain', type=bool, metavar='', default=False, \
-                    help='When True, mimics ReDial inputs by allowing only from 1 to 7 (random)\
+parser.add_argument('--noiseTrain', default=False, action='store_true', \
+                    help='If arg added, mimics ReDial inputs by allowing only from 1 to 7 (random)\
                     ratings as inputs.')
-parser.add_argument('--noiseEval', type=bool, metavar='', default=False, \
-                    help='When True, mimics ReDial inputs by allowing only from 1 to 7 (random)\
+parser.add_argument('--noiseEval', default=False, action='store_true', \
+                    help='If arg added, mimics ReDial inputs by allowing only from 1 to 7 (random)\
                     ratings as inputs.')
 parser.add_argument('--weights', type=float, metavar='', default=1, \
                     help='Weights multiplying the errors on ratings of 0 (underrepresented) \
@@ -58,8 +58,8 @@ parser.add_argument('--completionPred', type=float, metavar='', default=100, \
                     help='% of data used for prediction')
 parser.add_argument('--completionPredChrono', type=float, metavar='', default=100, \
                     help='% of data used for chrono prediction')
-parser.add_argument('--EARLY', type=bool, metavar='', default=False, \
-                    help="Train at 10%, Pred at 1% and PredChrono at 1%")
+parser.add_argument('--EARLY', default=False, action='store_true', \
+                    help="If arg added, Train at 10%, Pred at 1% and PredChrono at 1%")
 
 
 
@@ -92,17 +92,17 @@ parser.add_argument('--topx', type=int, metavar='', default=100, \
 
 
 # Others
-parser.add_argument('--seed', type=bool, metavar='', default=False, \
-                    help="If True, random always give the same")
+parser.add_argument('--seed', default=False, action='store_true', \
+                    help="If arg added, random always give the same")
 
-parser.add_argument('--orion', type=bool, metavar='', default=False, \
-                    help="Run Orion - Hyper Parameter search")
+parser.add_argument('--orion', default=False, action='store_true', \
+                    help="If arg added, run Orion - Hyper Parameter search")
 
 parser.add_argument('--DEVICE', type=str, metavar='', default='cuda', choices=['cuda', 'cpu'], \
                     help="Type of machine to run on")
 
-parser.add_argument('--DEBUG', type=bool, metavar='', default=False, \
-                    help="Reduced dataset and epoch to 1 for rapid debug purposes")
+parser.add_argument('--DEBUG', default=False, action='store_true', \
+                    help="If arg added, reduced dataset and epoch to 1 for rapid debug purposes")
 
 
 
@@ -115,11 +115,13 @@ args = parser.parse_args()
 
 # ASSERTIONS
 
+
 if args.criterion == 'BCE':
     assert args.last_layer_activation != 'none','Need last layer activation with BCE'
 if args.criterion == 'BCEWLL':
     assert args.last_layer_activation == 'none',"Last layer activation must be 'none' with BCEWLL"
 
+# Pourcentage
 assert 0 <= args.completionTrain <=100,'completionTrain should be in [0,100]'
 assert 0 <= args.completionPred <=100,'completionPred should be in [0,100]'
 assert 0 <= args.completionPredChrono <=100,'completionPredChrono should be in [0,100]'
@@ -129,7 +131,7 @@ assert 0 <= args.completionPredChrono <=100,'completionPredChrono should be in [
 
 
 # CONVERSION
-# (group of hyper-parameters group under a name for efficiency when running)
+# (bunch of hyper-parameters group under a name for efficiency when running)
 
 if args.EARLY:
     args.completionTrain = 10 
