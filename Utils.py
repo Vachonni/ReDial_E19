@@ -356,14 +356,14 @@ class RnGChronoDataset(data.Dataset):
     """
     
     def __init__(self, RnGlist, dict_genresInter_idx_UiD, nb_movies, popularity, DEVICE, \
-                 exclude_genres=False, merge_data=True, noise=False, top_cut=100):
+                 exclude_genres=False, no_data_merge=False, noise=False, top_cut=100):
         self.RnGlist = RnGlist
         self.dict_genresInter_idx_UiD = dict_genresInter_idx_UiD
         self.nb_movies = nb_movies
         self.popularity = popularity
         self.DEVICE = DEVICE
         self.exclude_genres = exclude_genres
-        self.merge_data = merge_data
+        self.no_data_merge = no_data_merge
         self.noise = noise
         self.top_cut = top_cut
         
@@ -387,7 +387,7 @@ class RnGChronoDataset(data.Dataset):
         genres = torch.zeros(self.nb_movies)
 
         # If we merge data (mentionned and to be mentionned)
-        if self.merge_data:
+        if not self.no_data_merge:
             sum_i_t = l_inputs + l_targets
             l_inputs = sum_i_t
             l_targets = sum_i_t
