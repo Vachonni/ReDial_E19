@@ -134,10 +134,10 @@ popularity = torch.from_numpy(popularity).float()
 ######## CREATING DATASET ListRatingDataset 
 print('******* Creating torch datasets *******')
 train_dataset = Utils.RnGChronoDataset(train_data, dict_genresInter_idx_UiD, \
-                                       nb_movies, popularity, args.DEVICE, args.incl_genres, \
+                                       nb_movies, popularity, args.DEVICE, args.exclude_genres, \
                                        args.merge_data, args.noiseTrain, args.top_cut)
 valid_dataset = Utils.RnGChronoDataset(valid_data, dict_genresInter_idx_UiD, \
-                                       nb_movies, popularity, args.DEVICE, args.incl_genres, \
+                                       nb_movies, popularity, args.DEVICE, args.exclude_genres, \
                                        args.merge_data, args.noiseEval, args.top_cut)
 
 ######## CREATE DATALOADER
@@ -216,7 +216,7 @@ for epoch in range(args.epoch):
         # Use only samples where genres mentionned (gm)
         RnG_valid_gm_data = [[c,m,g,tbm] for c,m,g,tbm in valid_data if g != []]
         valid_gm_dataset = Utils.RnGChronoDataset(RnG_valid_gm_data, dict_genresInter_idx_UiD, nb_movies, \
-                                                  popularity, args.DEVICE, args.incl_genres, False, args.noiseEval, args.top_cut)
+                                                  popularity, args.DEVICE, args.exclude_genres, False, args.noiseEval, args.top_cut)
                                                                                 # False because: Nerver merge data
         valid_gm_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
         

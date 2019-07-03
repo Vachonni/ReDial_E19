@@ -356,13 +356,13 @@ class RnGChronoDataset(data.Dataset):
     """
     
     def __init__(self, RnGlist, dict_genresInter_idx_UiD, nb_movies, popularity, DEVICE, \
-                 incl_genres=True, merge_data=True, noise=False, top_cut=100):
+                 exclude_genres=False, merge_data=True, noise=False, top_cut=100):
         self.RnGlist = RnGlist
         self.dict_genresInter_idx_UiD = dict_genresInter_idx_UiD
         self.nb_movies = nb_movies
         self.popularity = popularity
         self.DEVICE = DEVICE
-        self.incl_genres = incl_genres
+        self.exclude_genres = exclude_genres
         self.merge_data = merge_data
         self.noise = noise
         self.top_cut = top_cut
@@ -412,7 +412,7 @@ class RnGChronoDataset(data.Dataset):
             masks_targets[uid] = 1
         
         # Genres
-        if self.incl_genres:
+        if not self.exclude_genres:
             # Turn list of genres into string
             str_genres = str(l_genres)
             # Try - if no movies of that genres (key error)
