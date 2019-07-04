@@ -240,141 +240,129 @@ class AsymmetricAutoEncoder(nn.Module):
 
     
 
-    
-    
-class GenresWrapper(nn.Module):
-    """
-    Adds parameters g and r to the model model_pre
-    """
-    
-    def __init__(self, model_pre):
-        super(GenresWrapper, self).__init__()
-        self.model_pre = model_pre
-        # Create g and r parameters that will weight the inputs
-        self.r = nn.Parameter(torch.rand(1)/10)
-        self.g = nn.Parameter(torch.rand(1)/10)
-        
-    def forward(self, inputs):
-        x = self.r * inputs[0] + self.g * inputs[1]
-        return self.model_pre(x)
-
-
-
-
-class GenresWrapperUnit(nn.Module):
-    """
-    Adds parameters g_i to the model model_pre
-    """
-    
-    def __init__(self, model_pre):
-        super(GenresWrapperUnit, self).__init__()
-        self.model_pre = model_pre
-        # size of one input
-        size = model_pre.encode_w[0].size(1)
-        # Create g_i parameters that will weight the genres inputs, one by movie
-    #   self.g = nn.Parameter(torch.rand(1,size)/10)     # Random init
-        self.g = nn.Parameter(torch.zeros(1,size)+0.01)  # Constant init
-        
-    def forward(self, inputs):
-        x = inputs[0] + self.g * inputs[1]
-        return self.model_pre(x)
-    
-    
-    
-    
-class GenresWrapperGenres(nn.Module):
-    """
-    Adds parameters g_g to the model model_pre
-    g_g is a unique/shared parameter according to the genres intersection
-    
-    --> Complicated because no info about the genres, only Uid of that genres.
-    """
+# Wrappers used without all data considered chrono as now with RnGChronoDataset    
+#    
+#class GenresWrapper(nn.Module):
+#    """
+#    Adds parameters g and r to the model model_pre
+#    """
 #    
 #    def __init__(self, model_pre):
-#        super(GenresWrapperGenres, self).__init__()
+#        super(GenresWrapper, self).__init__()
 #        self.model_pre = model_pre
-#        # Matrix where each column is one hot of the genres of the movie
-#        self.one_hot_mat_g = torch.zeros(1559,48272)
-#        # One parameter for each of the 1559 genres  
-#        self.g = nn.Parameter(torch.rand(1559,1)/10)
-#        # Create vector of g_g distriubuted over ~48K movies 
-#        self.g_distributed =  (self.g * self.one_hot_mat_g).sum(0)
+#        # Create g and r parameters that will weight the inputs
+#        self.r = nn.Parameter(torch.rand(1)/10)
+#        self.g = nn.Parameter(torch.rand(1)/10)
 #        
 #    def forward(self, inputs):
-#      #  for i, inpu in enum(inputs[1]):
-#        genres_l_UiD = inputs[3].tolist()
-#        genres_l_UiD.sort()
-#        genres_l_UiD = str(genres_l_UiD)
-#        genres_index = self.dict_l_UiD_index[genres_l_UiD]
-#        genres_one_hot = torch.zeros(genres_l_UiD)
-#        genres_one_hot[genres_index] = 1
-#        print(inputs[0].shape, inputs[1].shape, self.g.shape, (inputs[1]*self.g).shape)
-#        x = inputs[0] + genres_one_hot * self.g * self.g_UiD_mat
-#        print(x.shape)
+#        x = self.r * inputs[0] + self.g * inputs[1]
+#        return self.model_pre(x)
+#
+#
+#
+#
+#class GenresWrapperUnit(nn.Module):
+#    """
+#    Adds parameters g_i to the model model_pre
+#    """
+#    
+#    def __init__(self, model_pre):
+#        super(GenresWrapperUnit, self).__init__()
+#        self.model_pre = model_pre
+#        # size of one input
+#        size = model_pre.encode_w[0].size(1)
+#        # Create g_i parameters that will weight the genres inputs, one by movie
+#    #   self.g = nn.Parameter(torch.rand(1,size)/10)     # Random init
+#        self.g = nn.Parameter(torch.zeros(1,size)+0.01)  # Constant init
+#        
+#    def forward(self, inputs):
+#        x = inputs[0] + self.g * inputs[1]
 #        return self.model_pre(x)
     
     
     
+
     
-class GenresWrapperChronoUnit(nn.Module):
+    
+class GenresWrapperChrono(nn.Module):
     """
-    Adds parameters g_i to the model model_pre
+    Wraps the model_pre with g parameter(s) (for genres input)
     """
     
-    def __init__(self, model_pre):
-        super(GenresWrapperChronoUnit, self).__init__()
+    def __init__(self, model_pre, g_type):
+        super(GenresWrapperChrono, self).__init__()
         self.model_pre = model_pre
+        self.g_type = g_type
         # size of one input
         size = model_pre.encode_w[0].size(1)
-        # Create g_i parameters that will weight the genres inputs, one by movie
-    #   self.g = nn.Parameter(torch.rand(1,size)/10)     # Random init
-        self.g = nn.Parameter(torch.zeros(1,size)+0.01)  # Constant init
+        if self.g_type == 'none':
+            self.g = torch.ones(1,size)
+        if self.g_type == 'one':
+            self.g = nn.Parameter(torch.rand(1)/10)
+        if self.g_type == 'genres':
+            # Load all genres intersection and their UiD associated
+            self.dict_genresInter_idx_UiD = \
+            json.load(open('/Users/nicholas/ReDial/DataProcessed/dict_genresInter_idx_UiD.json'))           
+            # Create g_g parameters that will weight the genres inputs (SHARED parameters by genres)
+            self.g = nn.Parameter(torch.rand(1, len(self.dict_genresInter_idx_UiD))/10)            
+        if self.g_type == 'unit':
+            # Init g_i parameters that will weight the genres inputs, one by movie
+        #   self.g = nn.Parameter(torch.rand(1,size)/10)     # Random init
+            self.g = nn.Parameter(torch.zeros(1,size)+0.01)  # Constant init
         
         
     def forward(self, inputs):
-        x = inputs[0] + self.g * inputs[1][1]
+        if self.g_type in ['none', 'one', 'unit']:
+            x = inputs[0] + self.g * inputs[1][1]
+        if self.g_type == 'genres':
+            # Prepare the one_hot_matrix
+            one_hot_mat = torch.zeros(inputs[0].size(0), len(self.dict_genresInter_idx_UiD))
+            for i, g_idx in enumerate(inputs[1][0]):
+                one_hot_mat[i, g_idx] = 1
+            # Get the genres for each sample * top 100 normalized movies genres values
+            x = inputs[0] + (self.g * one_hot_mat).sum(1, keepdim=True) * inputs[1][1]                
         
         return self.model_pre(x)
     
     
     
     
-    
-class GenresWrapperChronoGenres(nn.Module):
-    """
-    Adds parameters g_g to the model model_pre
-    g_g is a unique/shared parameter according to the genres intersection
-    """
-    
-    def __init__(self, model_pre):
-        super(GenresWrapperChronoGenres, self).__init__()
-        self.model_pre = model_pre
-        # Load all genres intersection and their UiD associated
-        self.dict_genresInter_idx_UiD = json.load(open('/Users/nicholas/ReDial/DataProcessed/dict_genresInter_idx_UiD.json'))
-#    #    # Reverse it to get "list UiD" to "[genres intersection]" ("listUiD" is sorted)
-#    #    self.dict_l_UiD_genresInter = {str(v):k for k,v in dict_genresInter_UiD.items()}
-#        # Create matrix of 1,559 intersection genres x 48,272 UiDs
-#        self.g_UiD_mat = torch.zeros(len(dict_genresInter_idx_UiD), 48272)
-#    #    self.dict_l_UiD_index = {}
-#        # Each line (genres), movie gets 1 if corresponding to genres intersection of that line
-#        for i, (k,v) in (dict_genresInter_idx_UiD.items()):
-#    #        v.sort()
-#    #        self.dict_l_UiD_index[str(v)] = i
-#            for vi in v:
-#                self.g_UiD_mat[i,vi] = 1
-#        # Create g_g parameters that will weight the genres inputs (SHARED parameters by genres)
-        self.g = nn.Parameter(torch.rand(1, len(self.dict_genresInter_idx_UiD))/10)
-        
-        
-    def forward(self, inputs):
-        # Prepare the one_hot_matrix
-        one_hot_mat = torch.zeros(inputs[0].size(0), len(self.dict_genresInter_idx_UiD))
-        for i, g_idx in enumerate(inputs[1][0]):
-            one_hot_mat[i, g_idx] = 1
-        # Get the genres for each sample * top 100 normalized movies genres values
-        x = inputs[0] + (self.g * one_hot_mat).sum(1, keepdim=True) * inputs[1][1]
-        
-        return self.model_pre(x)   
+#    
+#class GenresWrapperChronoGenres(nn.Module):
+#    """
+#    Adds parameters g_g to the model model_pre
+#    g_g is a unique/shared parameter according to the genres intersection
+#    """
+#    
+#    def __init__(self, model_pre):
+#        super(GenresWrapperChronoGenres, self).__init__()
+#        self.model_pre = model_pre
+#        # Load all genres intersection and their UiD associated
+#        self.dict_genresInter_idx_UiD = json.load(open('/Users/nicholas/ReDial/DataProcessed/dict_genresInter_idx_UiD.json'))
+##    #    # Reverse it to get "list UiD" to "[genres intersection]" ("listUiD" is sorted)
+##    #    self.dict_l_UiD_genresInter = {str(v):k for k,v in dict_genresInter_UiD.items()}
+##        # Create matrix of 1,559 intersection genres x 48,272 UiDs
+##        self.g_UiD_mat = torch.zeros(len(dict_genresInter_idx_UiD), 48272)
+##    #    self.dict_l_UiD_index = {}
+##        # Each line (genres), movie gets 1 if corresponding to genres intersection of that line
+##        for i, (k,v) in (dict_genresInter_idx_UiD.items()):
+##    #        v.sort()
+##    #        self.dict_l_UiD_index[str(v)] = i
+##            for vi in v:
+##                self.g_UiD_mat[i,vi] = 1
+##        # Create g_g parameters that will weight the genres inputs (SHARED parameters by genres)
+#        self.g = nn.Parameter(torch.rand(1, len(self.dict_genresInter_idx_UiD))/10)
+#        
+#        
+#    def forward(self, inputs):
+#        # Prepare the one_hot_matrix
+#        one_hot_mat = torch.zeros(inputs[0].size(0), len(self.dict_genresInter_idx_UiD))
+#        for i, g_idx in enumerate(inputs[1][0]):
+#            one_hot_mat[i, g_idx] = 1
+#        # Get the genres for each sample * top 100 normalized movies genres values
+#        x = inputs[0] + (self.g * one_hot_mat).sum(1, keepdim=True) * inputs[1][1]
+#        
+#        return self.model_pre(x)   
     
     
     

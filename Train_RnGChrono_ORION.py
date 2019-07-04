@@ -86,7 +86,7 @@ if args.preModel == 'none':
                                                     is_constrained=False, dp_drop_prob=0.0, \
                                                     last_layer_activations=False,\
                                                     lla = args.last_layer_activation).to(args.DEVICE)
-    model = AutoEncoders.GenresWrapperChronoUnit(model_base).to(args.DEVICE)
+    model = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
 # Load an existing model
 else:
     print('******* Load EXISTING Model *******')      
@@ -94,7 +94,7 @@ else:
                                                     is_constrained=False, dp_drop_prob=0.0, \
                                                     last_layer_activations=False, \
                                                     lla = args.last_layer_activation).to(args.DEVICE)
-    model = AutoEncoders.GenresWrapperChronoUnit(model_base).to(args.DEVICE)
+    model = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
     checkpoint = torch.load(args.preModel, map_location=args.DEVICE)
     model.load_state_dict(checkpoint['state_dict'])
 
@@ -218,8 +218,9 @@ for epoch in range(args.epoch):
         valid_gm_dataset = Utils.RnGChronoDataset(RnG_valid_gm_data, dict_genresInter_idx_UiD, nb_movies, \
                                                   popularity, args.DEVICE, args.exclude_genres, True, args.noiseEval, args.top_cut)
                                                                                 # True because: Nerver data merge in Chrono
-        valid_gm_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
-        
+        valid_gm_loader = torch.utils.data.DataLoader(valid_gm_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
+
+ 
         l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
              Utils.EvalPredictionRnGChrono(valid_gm_loader, model, \
                                            criterion, args.completionPredChrono, args.topx)
