@@ -468,19 +468,19 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
     
     """ """
    
-
+    print('TRAINING')
      
     for batch_idx, (masks, inputs, targets) in enumerate(train_loader):
         
         # Early stopping
         if batch_idx > nb_batch: 
-            print('EARLY stopping')
+            print(' *EARLY stopping')
             break
         
         # Print update
         if batch_idx % 100 == 0: 
-            print('Batch {} out of {}.  Loss:{}'.format(batch_idx, nb_batch,\
-                  train_loss/(batch_idx+1)))  
+            print('Batch {:4d} out of {:4.1f}.    Reconstruction Loss on targets: {:.4f}'\
+                  .format(batch_idx, nb_batch, train_loss/(batch_idx+1)))  
                 
         # Add weights on targets rated 0 because outnumbered by targets 1
         weights = (masks[1] == 1) * (targets == 0) * weights_factor + \
@@ -548,18 +548,20 @@ def EvalReconstruction(valid_loader, model, criterion, completion):
     eval_loss = 0
     nb_batch = len(valid_loader) * completion / 100
     
+    print('\nEVALUATION')
+    
     with torch.no_grad():
         for batch_idx, (masks, inputs, targets) in enumerate(valid_loader):
             
             # Early stopping 
             if batch_idx > nb_batch: 
-                print('EARLY stopping')
+                print(' *EARLY stopping')
                 break
             
             # Print update
             if batch_idx % 100 == 0: 
-                print('Batch {} out of {}.  Loss:{}'.format(batch_idx, nb_batch,\
-                      eval_loss/(batch_idx+1)))  
+                print('Batch {:4d} out of {:4.1f}.    Reconstruction Loss on targets: {:.4f}'\
+                      .format(batch_idx, nb_batch, eval_loss/(batch_idx+1)))  
     
             pred = model(inputs)  
             

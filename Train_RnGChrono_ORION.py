@@ -168,13 +168,15 @@ avrg_ranks_epoch = []
 
 pred_mean_values = []
 
-old_g = torch.zeros(1).to(args.DEVICE)
+#old_g = torch.zeros(1).to(args.DEVICE)
 
 
 
 
 if args.DEBUG: args.epoch = 1
 for epoch in range(args.epoch):
+    
+    print('\n\n\n\n     ==> Epoch:', epoch, '\n')
     
     train_loss = Utils.TrainReconstruction(train_loader, model, criterion, optimizer, \
                                            args.weights, args.completionTrain)
@@ -200,16 +202,18 @@ for epoch in range(args.epoch):
     valid_losses.append(eval_loss)
     losses = [train_losses, valid_losses]  
     
-    print('\n==> Epoch: {} \n======> Train loss: {:.4f}\n======> Valid loss: {:.4f}'.format(
-          epoch, train_loss, eval_loss))
-    print("Parameter g = ", model.g.data, "Average:", model.g.data.mean(), \
-          "min:", model.g.data.min(), "max", model.g.data.max(), '\n\n')
-    print('g equal?', (old_g == model.g.data).all())
-    old_g = model.g.data.clone()
+    print('\nEND EPOCH {:3d} \nTrain Reconstruction loss on targets: {:.4f}\
+          \nValid Reconstruction Loss on tragets: {:.4f}' \
+          .format(epoch, train_loss, eval_loss))
+    print("Parameter g - Avrg: {:.4f} Min: {:.4f} Max: {:.4f}" \
+          .format(model.g.data.mean().item(), model.g.data.min().item(), \
+                  model.g.data.max().item()))
+#    print('g equal?', (old_g == model.g.data).all())
+#    old_g = model.g.data.clone()
     
     
     
-    # CHRONO EVALUAITON
+    # CHRONO EVALUATION
 
     if args.completionPredChrono != 0:
         print("\n\n\n\nEvaluating prediction error CHORNOLOGICAL...")
@@ -273,11 +277,11 @@ for epoch in range(args.epoch):
         break
 
     
-    # Save fisrt model and only if it improves on valid data after   
+    # Save fisrt model and model that improves valid reconstruction loss
     precedent_losses = valid_losses[:-1]
     if precedent_losses == []: precedent_losses = [0]     # Cover 1st epoch for min([])'s error
     if epoch == 0 or eval_loss < min(precedent_losses):
-        print('Saving...')
+        print('\n   Saving...')
         state = {
                 'epoch': epoch,
                 'eval_loss': eval_loss,
@@ -286,7 +290,7 @@ for epoch in range(args.epoch):
                 'losses': losses
                 }
         torch.save(state, './Results/AE_'+args.id+'.pth')
-        print('...saved\n\n')
+        print('......saved.')
         
         
 
