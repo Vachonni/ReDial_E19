@@ -728,9 +728,20 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
     Same as EvalPredictionGenres, but values returned are complete (not their mean)
     """
     model.eval()
-    l_loss = []
+    
+    l_loss_liked = []
+    l_loss_disliked = []
     l_rank_liked = []
     l_rank_disliked = []
+    l_avrg_rank_liked = []
+    l_avrg_rank_disliked = []
+    l_mrr_liked = []
+    l_mrr_disliked = []
+    l_rr_liked = []
+    l_rr_disliked = []
+    l_ndcg_liked = []
+    l_ndcg_disliked = []
+    
     nb_batch = len(loader) * completion / 100
     
     with torch.no_grad():
@@ -764,7 +775,6 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                     inputs[0][0][i] = r
                     # Evaluate error
                     error = criterion(pred[0][i], r)
-                    l_loss.append(error.item())
                     # Ranking of this prediction among all predictions. 
                     # ranks is a 2D array of size (nb of pred with same value as m, position of value)
                     
@@ -777,7 +787,7 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                  #   ranks = (torch.sort(pred[0][Settings.l_ReDUiD], descending=True)[0] == pred[0][i]).nonzero() + 1
 #                    ranks_old = (torch.sort(pred[0], descending=True)[0] == pred[0][i]).nonzero() + 1
                     """ Trying to use function Ranks for consistency"""
-                    ranks, _, _, _, _ = Ranks(pred[0], pred[0][i].view(-1))
+                    ranks, avrg_rank, mrr, rr, ndcg = Ranks(pred[0], pred[0][i].view(-1))
                     ranks = torch.from_numpy(ranks).view(1,-1)
 #                    if (ranks_old[0,0] == ranks[0,0].long()).all().sum() != 1:
 #                        print('\n\n** DIFFERENT RANKS **',ranks_old[0,0], ranks[0,0].long(),'\n\n')
@@ -785,10 +795,20 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                  #   print("Value of rating (r) is:", r)
                     if r == 1.0:
                  #       print("Added to the liked movies ranking")
+                        l_loss_liked.append(error.item())
                         l_rank_liked.append(ranks[0,0].item())
+                        l_avrg_rank_liked.append(avrg_rank)
+                        l_mrr_liked.append(mrr)
+                        l_rr_liked.append(rr)
+                        l_ndcg_liked.append(ndcg)
                     elif r == 0.0:
                  #       print("Added to the DISliked movies ranking")
+                        l_loss_disliked.append(error.item())
                         l_rank_disliked.append(ranks[0,0].item())
+                        l_avrg_rank_disliked.append(avrg_rank)
+                        l_mrr_disliked.append(mrr)
+                        l_rr_disliked.append(rr)
+                        l_ndcg_disliked.append(ndcg)
                  #   print("number of predictions with same value", ranks.size()[0])
                     
                  # Early stoopping
@@ -797,12 +817,14 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                      #   print('stop at {} prediction for user'.format(count_pred), len(masks[0][0].nonzero()))
                         break
 
-                    
-    l_loss = np.array(l_loss)
-    l_rank_liked = np.array(l_rank_liked)
-    l_rank_disliked= np.array(l_rank_disliked)
 
-    return l_loss,l_rank_liked, l_rank_disliked
+    return l_loss_liked, l_loss_disliked, \
+           l_rank_liked, l_rank_disliked, \
+           l_avrg_rank_liked, l_avrg_rank_disliked, \
+           l_mrr_liked, l_mrr_disliked, \
+           l_rr_liked, l_rr_disliked, \
+           l_ndcg_liked, l_ndcg_disliked
+
 
 
 

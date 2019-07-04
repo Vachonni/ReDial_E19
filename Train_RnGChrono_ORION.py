@@ -118,6 +118,8 @@ elif args.criterion == 'BCE':
 print('******* Loading SAMPLES from *******', args.dataPATH + args.dataTrain)
 train_data = json.load(open(args.dataPATH + args.dataTrain))
 valid_data = json.load(open(args.dataPATH + args.dataValid))
+# Use only samples where there is a genres mention
+valid_g_data = [[c,m,g,tbm] for c,m,g,tbm in valid_data if g != []]
 if args.DEBUG: 
     train_data = train_data[:128]
     valid_data = valid_data[:128]
@@ -131,6 +133,7 @@ print('** Including popularity')
 popularity = np.load(args.dataPATH + 'popularity_vector.npy')
 popularity = torch.from_numpy(popularity).float()
 
+
 ######## CREATING DATASET ListRatingDataset 
 print('******* Creating torch datasets *******')
 train_dataset = Utils.RnGChronoDataset(train_data, dict_genresInter_idx_UiD, \
@@ -139,6 +142,15 @@ train_dataset = Utils.RnGChronoDataset(train_data, dict_genresInter_idx_UiD, \
 valid_dataset = Utils.RnGChronoDataset(valid_data, dict_genresInter_idx_UiD, \
                                        nb_movies, popularity, args.DEVICE, args.exclude_genres, \
                                        args.no_data_merge, args.noiseEval, args.top_cut)
+# Use only samples where there is a genres mention
+valid_g_dataset = Utils.RnGChronoDataset(valid_g_data, dict_genresInter_idx_UiD, \
+                                         nb_movies, popularity, args.DEVICE, args.exclude_genres, \
+                                         args.no_data_merge, args.noiseEval, args.top_cut)
+# FOR CHRONO (hence no_data_merge is True) + use only samples where there is a genres mention
+valid_chrono_dataset = Utils.RnGChronoDataset(valid_g_data, dict_genresInter_idx_UiD, \
+                                         nb_movies, popularity, args.DEVICE, args.exclude_genres, \
+                                         True, args.noiseEval, args.top_cut)           
+
 
 ######## CREATE DATALOADER
 print('******* Creating dataloaders *******\n\n')    
@@ -149,8 +161,10 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,
                                            shuffle=True, drop_last=True, **kwargs)
 valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch,\
                                            shuffle=True, drop_last=True, **kwargs)    
-
-
+# For PredRaw - Loader of only 1 sample (user) 
+loader_bs1 = torch.utils.data.DataLoader(valid_dataset, batch_size=1, shuffle=True, **kwargs)
+# For PredChrono
+valid_chrono_loader = torch.utils.data.DataLoader(valid_chrono_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
 
 
 
@@ -163,8 +177,6 @@ valid_losses = []
 global_pred_err_epoch = []
 ReDial_pred_err_epoch = []
 avrg_ranks_epoch = []
-
-
 
 pred_mean_values = []
 
@@ -217,16 +229,9 @@ for epoch in range(args.epoch):
 
     if args.completionPredChrono != 0:
         print("\n\n\n\nEvaluating prediction error CHORNOLOGICAL...")
-        # Use only samples where genres mentionned (gm)
-        RnG_valid_gm_data = [[c,m,g,tbm] for c,m,g,tbm in valid_data if g != []]
-        valid_gm_dataset = Utils.RnGChronoDataset(RnG_valid_gm_data, dict_genresInter_idx_UiD, nb_movies, \
-                                                  popularity, args.DEVICE, args.exclude_genres, True, args.noiseEval, args.top_cut)
-                                                                                # True because: Nerver data merge in Chrono
-        valid_gm_loader = torch.utils.data.DataLoader(valid_gm_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
-
  
         l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
-             Utils.EvalPredictionRnGChrono(valid_gm_loader, model, \
+             Utils.EvalPredictionRnGChrono(valid_chrono_loader, model, \
                                            criterion, args.completionPredChrono, args.topx)
         
         
@@ -265,6 +270,8 @@ for epoch in range(args.epoch):
         Utils.EpochPlot(avrg_ranks_epoch, 'ReDial liked avrg ranks')
     
     
+    # PRINT BY EPOCH ON DATA WITH GENRES NO CHRONO
+    
     
 
     # Patience - Stop if the Model didn't improve in the last 'patience' epochs
@@ -277,7 +284,7 @@ for epoch in range(args.epoch):
         break
 
     
-    # Save fisrt model and model that improves valid reconstruction loss
+    # SAVING - Fisrt model and model that improves valid reconstruction loss
     precedent_losses = valid_losses[:-1]
     if precedent_losses == []: precedent_losses = [0]     # Cover 1st epoch for min([])'s error
     if epoch == 0 or eval_loss < min(precedent_losses):
@@ -306,8 +313,7 @@ for epoch in range(args.epoch):
 # FOR GLOBAL - OLD EVALUATION
 
 print('\nEvaluation prediction error GLOBAL...')
-# Loader of only 1 sample (user) in order to predict for each rating
-loader_bs1 = torch.utils.data.DataLoader(valid_dataset, batch_size=1, shuffle=True, **kwargs)
+
 pred_err, pred_rank_liked, pred_rank_disliked = Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPred)
 
 
