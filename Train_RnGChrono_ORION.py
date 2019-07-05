@@ -175,7 +175,7 @@ old_g = torch.zeros(1).to(args.DEVICE)
 
 if args.DEBUG: args.epoch = 1
 for epoch in range(args.epoch):
-    
+
     train_loss = Utils.TrainReconstruction(train_loader, model, criterion, optimizer, \
                                            args.weights, args.completionTrain)
     eval_loss = Utils.EvalReconstruction(valid_loader, model, criterion, \
