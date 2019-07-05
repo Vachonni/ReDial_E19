@@ -87,6 +87,7 @@ if args.preModel == 'none':
                                                     last_layer_activations=False,\
                                                     lla = args.last_layer_activation).to(args.DEVICE)
     model = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
+    model.g.to(args.DEVICE)
 # Load an existing model
 else:
     print('******* Load EXISTING Model *******')      
@@ -95,6 +96,7 @@ else:
                                                     last_layer_activations=False, \
                                                     lla = args.last_layer_activation).to(args.DEVICE)
     model = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
+    model.g.to(args.DEVICE)
     checkpoint = torch.load(args.preModel, map_location=args.DEVICE)
     model.load_state_dict(checkpoint['state_dict'])
 
