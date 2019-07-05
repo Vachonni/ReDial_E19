@@ -296,6 +296,8 @@ class GenresWrapperChrono(nn.Module):
         # size of one input
         size = model_pre.encode_w[0].size(1)
         if self.g_type == 'none':
+            self.g = torch.zeros(1,size)        
+        if self.g_type == 'fixed':
             self.g = torch.ones(1,size)
         if self.g_type == 'one':
             self.g = nn.Parameter(torch.rand(1)/10)

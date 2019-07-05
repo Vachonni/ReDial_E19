@@ -64,10 +64,10 @@ parser.add_argument('--EARLY', default=False, action='store_true', \
 
 
 # Model
-parser.add_argument('--g_type', type=str, metavar='', default='one', \
-                    choices=['none', 'one', 'genres', 'unit'], \
-                    help="Parameter(s) learned for genres inputs. None means no learning, One is \
-                    for one global parameter, Unit is one parameter per unit,...")
+parser.add_argument('--g_type', type=str, metavar='', default='genres', \
+                    choices=['none', 'fixed', 'one', 'genres', 'unit'], \
+                    help="Parameter(s) learned for genres inputs. None: no genres, Fixed: no learning, \
+                    One: one global parameter, Genres: one parameter by genres, Unit:one parameter per movie,...")
 parser.add_argument('--layer1', type=int, metavar='', default=344, \
                     help='Integers corresponding to the first hidden layer size')
 parser.add_argument('--layer2', type=int, metavar='', default=27, \
