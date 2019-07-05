@@ -315,6 +315,7 @@ class GenresWrapperChrono(nn.Module):
         
     def forward(self, inputs):
         if self.g_type in ['none', 'fixed', 'one', 'unit']:
+            self.g.to('cuda')
             print(self.g, inputs[0])
             x = inputs[0] + self.g * inputs[1][1]
         if self.g_type == 'genres':
