@@ -296,9 +296,9 @@ class GenresWrapperChrono(nn.Module):
         # size of one input
         size = model_pre.encode_w[0].size(1)
         if self.g_type == 'none':
-            self.g = torch.zeros(1,size)        
+            self.g = nn.Parameter(torch.zeros(1,size), requires_grad=False)        
         if self.g_type == 'fixed':
-            self.g = torch.ones(1,size)
+            self.g = nn.Parameter(torch.ones(1,size), requires_grad=False)
         if self.g_type == 'one':
             self.g = nn.Parameter(torch.rand(1)/10)
         if self.g_type == 'genres':
@@ -315,7 +315,6 @@ class GenresWrapperChrono(nn.Module):
         
     def forward(self, inputs):
         if self.g_type in ['none', 'fixed', 'one', 'unit']:
-            self.g.to('cuda')
             print(self.g, inputs[0])
             x = inputs[0] + self.g * inputs[1][1]
         if self.g_type == 'genres':
