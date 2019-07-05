@@ -315,7 +315,6 @@ class GenresWrapperChrono(nn.Module):
         
     def forward(self, inputs):
         if self.g_type in ['none', 'fixed', 'one', 'unit']:
-            print(self.g, inputs[0])
             x = inputs[0] + self.g * inputs[1][1]
         if self.g_type == 'genres':
             # Prepare the one_hot_matrix
