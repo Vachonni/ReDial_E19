@@ -175,9 +175,7 @@ train_losses = []
 valid_losses = []
 
 l_loss_epoch = []
-l_rank_epoch = []
 l_avrg_rank_epoch = []
-l_mrr_epoch = []
 l_rr_epoch = []
 l_ndcg_epoch = []
 
@@ -277,18 +275,16 @@ for epoch in range(args.epoch):
     
     print('\nPredRaw...')
     
-    l1, l0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
+    lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
          Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPred)
      
-    l_loss_epoch.append((mean(l1), mean(l0)))
+    l_loss_epoch.append((mean(lgl), mean(lnl), mean(lgn), mean(lnn)))
     Utils.EpochPlot(l_loss_epoch, 'Avrg error by epoch, PredRaw')
-    l_avrg_rank_epoch.append((mean(a1), mean(a0)))
+    l_avrg_rank_epoch.append((mean(agl), mean(anl), mean(agn), mean(ann)))
     Utils.EpochPlot(l_avrg_rank_epoch, 'Avrg ranks by epoch, PredRaw')
-    l_mrr_epoch.append((mean(mr1), mean(mr0)))
-    Utils.EpochPlot(l_mrr_epoch, 'Avrg MRR by epoch, PredRaw')
-    l_rr_epoch.append((mean(r1), mean(r0)))
+    l_rr_epoch.append((mean(rgl), mean(rnl), mean(rgn), mean(rnn)))
     Utils.EpochPlot(l_rr_epoch, 'Avrg RR by epoch, PredRaw')
-    l_ndcg_epoch.append((mean(d1), mean(d0)))
+    l_ndcg_epoch.append((mean(ngl), mean(nnl), mean(ngn), mean(nnn)))
     Utils.EpochPlot(l_ndcg_epoch, 'Avrg NDCG by epoch, PredRaw')    
     
     

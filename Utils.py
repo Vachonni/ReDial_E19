@@ -543,6 +543,8 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
 
 
 
+
+
 def EvalReconstruction(valid_loader, model, criterion, completion):
     model.eval()
     eval_loss = 0
@@ -729,18 +731,23 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
     """
     model.eval()
     
-    l_loss_liked = []
-    l_loss_disliked = []
-    l_rank_liked = []
-    l_rank_disliked = []
-    l_avrg_rank_liked = []
-    l_avrg_rank_disliked = []
-    l_mrr_liked = []
-    l_mrr_disliked = []
-    l_rr_liked = []
-    l_rr_disliked = []
-    l_ndcg_liked = []
-    l_ndcg_disliked = []
+    # In order: g (genres) and l (liked). If not, then used 'n'
+    l_loss_gl = []
+    l_loss_nl = []
+    l_loss_gn = []
+    l_loss_nn = []
+    l_avrg_rank_gl= []
+    l_avrg_rank_nl= []
+    l_avrg_rank_gn= []
+    l_avrg_rank_nn= []
+    l_rr_gl = []
+    l_rr_nl = []    
+    l_rr_gn = []    
+    l_rr_nn = []
+    l_ndcg_gl = []
+    l_ndcg_nl = []
+    l_ndcg_gn = []
+    l_ndcg_nn = []
     
     nb_batch = len(loader) * completion / 100
     
@@ -787,29 +794,36 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                  #   ranks = (torch.sort(pred[0][Settings.l_ReDUiD], descending=True)[0] == pred[0][i]).nonzero() + 1
 #                    ranks_old = (torch.sort(pred[0], descending=True)[0] == pred[0][i]).nonzero() + 1
                     """ Trying to use function Ranks for consistency"""
-                    ranks, avrg_rank, mrr, rr, ndcg = Ranks(pred[0], pred[0][i].view(-1))
-                    ranks = torch.from_numpy(ranks).view(1,-1)
+                    _, avrg_rank, _, rr, ndcg = Ranks(pred[0], pred[0][i].view(-1))
+           #         ranks = torch.from_numpy(ranks).view(1,-1)
 #                    if (ranks_old[0,0] == ranks[0,0].long()).all().sum() != 1:
 #                        print('\n\n** DIFFERENT RANKS **',ranks_old[0,0], ranks[0,0].long(),'\n\n')
                     """ """
                  #   print("Value of rating (r) is:", r)
-                    if r == 1.0:
-                 #       print("Added to the liked movies ranking")
-                        l_loss_liked.append(error.item())
-                 #       l_rank_liked.append(ranks[0,0].item())
-                        l_avrg_rank_liked.append(avrg_rank)
-                        l_mrr_liked.append(mrr)
-                        l_rr_liked.append(rr)
-                        l_ndcg_liked.append(ndcg)
-                    elif r == 0.0:
-                 #       print("Added to the DISliked movies ranking")
-                        l_loss_disliked.append(error.item())
-                 #       l_rank_disliked.append(ranks[0,0].item())
-                        l_avrg_rank_disliked.append(avrg_rank)
-                        l_mrr_disliked.append(mrr)
-                        l_rr_disliked.append(rr)
-                        l_ndcg_disliked.append(ndcg)
-                 #   print("number of predictions with same value", ranks.size()[0])
+                    # with genres and liked (gl case) 
+                    if inputs[1][0][0] != 1 and r == 1.0:
+                        l_loss_gl.append(error.item())
+                        l_avrg_rank_gl.append(avrg_rank)
+                        l_rr_gl.append(rr)
+                        l_ndcg_gl.append(ndcg)
+                    # with NO genres and liked (nl case) 
+                    if inputs[1][0][0] == 1 and r == 1.0:
+                        l_loss_nl.append(error.item())
+                        l_avrg_rank_nl.append(avrg_rank)
+                        l_rr_nl.append(rr)
+                        l_ndcg_nl.append(ndcg)
+                    # with genres and DISliked (gn case) 
+                    if inputs[1][0][0] != 1 and r == 0.0:
+                        l_loss_gn.append(error.item())
+                        l_avrg_rank_gn.append(avrg_rank)
+                        l_rr_gn.append(rr)
+                        l_ndcg_gn.append(ndcg)
+                    # with NO genres and DISliked (nn case) 
+                    if inputs[1][0][0] == 1 and r == 0.0:
+                        l_loss_nn.append(error.item())
+                        l_avrg_rank_nn.append(avrg_rank)
+                        l_rr_nn.append(rr)
+                        l_ndcg_nn.append(ndcg)
                     
                  # Early stoopping
                     count_pred += 1 
@@ -818,11 +832,10 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                         break
 
 
-    return l_loss_liked, l_loss_disliked, \
-           l_avrg_rank_liked, l_avrg_rank_disliked, \
-           l_mrr_liked, l_mrr_disliked, \
-           l_rr_liked, l_rr_disliked, \
-           l_ndcg_liked, l_ndcg_disliked
+    return l_loss_gl, l_loss_nl, l_loss_gn, l_loss_nn, \
+           l_avrg_rank_gl, l_avrg_rank_nl, l_avrg_rank_gn, l_avrg_rank_nn, \
+           l_rr_gl, l_rr_nl, l_rr_gn, l_rr_nn, \
+           l_ndcg_gl, l_ndcg_nl, l_ndcg_gn, l_ndcg_nn
 
 
 
@@ -1231,17 +1244,18 @@ def ChronoPlot(d1, d0, title=''):
     
 def EpochPlot(tup, title=''):
     """
-    Plot graph of 2 dict, doing mean of values
+    Plot graph of 4-tuples, doing mean of values
     """
         
-    y1 = [w1 for (w1, w0) in tup]
-    y0 = [w0 for (w1, w0) in tup]
-
-    print(y1)
-    print(y0)
+    ygl = [wgl for (wgl, wnl, wgn, wnn) in tup]
+    ynl = [wnl for (wgl, wnl, wgn, wnn) in tup]
+    ygn = [wgn for (wgl, wnl, wgn, wnn) in tup]
+    ynn = [wnn for (wgl, wnl, wgn, wnn) in tup]
     
-    plt.plot(y1, label='with genres / liked')
-    plt.plot(y0, label='without / not liked')
+    plt.plot(ygl, label='with genres & liked')
+    plt.plot(ynl, label='without genres & liked')
+    plt.plot(ygn, label='with genres & disliked')
+    plt.plot(ynn, label='without genres & disliked')    
     plt.title(title, fontweight="bold")
     plt.xlabel('epoch')
     plt.legend()
