@@ -174,9 +174,12 @@ valid_chrono_loader = torch.utils.data.DataLoader(valid_chrono_dataset, batch_si
 train_losses = []
 valid_losses = []
 
-global_pred_err_epoch = []
-ReDial_pred_err_epoch = []
-avrg_ranks_epoch = []
+l_loss_epoch = []
+l_rank_epoch = []
+l_avrg_rank_epoch = []
+l_mrr_epoch = []
+l_rr_epoch = []
+l_ndcg_epoch = []
 
 pred_mean_values = []
 
@@ -270,9 +273,26 @@ for epoch in range(args.epoch):
         Utils.EpochPlot(avrg_ranks_epoch, 'ReDial liked avrg ranks')
     
     
-    # PRINT BY EPOCH ON DATA WITH GENRES NO CHRONO
+    # PRINT BY EPOCH ON DATA NO CHRONO
+    
+    print('\nPredRaw...')
+    
+    l1, l0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
+         Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPred)
+     
+    l_loss_epoch.append((mean(l1), mean(l0)))
+    Utils.EpochPlot(l_loss_epoch, 'Avrg error by epoch, PredRaw')
+    l_avrg_rank_epoch.append((mean(a1), mean(a0)))
+    Utils.EpochPlot(l_avrg_rank_epoch, 'Avrg ranks by epoch, PredRaw')
+    l_mrr_epoch.append((mean(mr1), mean(mr0)))
+    Utils.EpochPlot(l_mrr_epoch, 'Avrg MRR by epoch, PredRaw')
+    l_rr_epoch.append((mean(r1), mean(r0)))
+    Utils.EpochPlot(l_rr_epoch, 'Avrg RR by epoch, PredRaw')
+    l_ndcg_epoch.append((mean(d1), mean(d0)))
+    Utils.EpochPlot(l_ndcg_epoch, 'Avrg NDCG by epoch, PredRaw')    
     
     
+
 
     # Patience - Stop if the Model didn't improve in the last 'patience' epochs
     patience = args.patience
@@ -312,7 +332,7 @@ for epoch in range(args.epoch):
 
 # FOR GLOBAL - OLD EVALUATION
 
-print('\nEvaluation prediction error GLOBAL...')
+print('\nPredRaw...')
 
 pred_err, pred_rank_liked, pred_rank_disliked = Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPred)
 

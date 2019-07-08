@@ -796,7 +796,7 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                     if r == 1.0:
                  #       print("Added to the liked movies ranking")
                         l_loss_liked.append(error.item())
-                        l_rank_liked.append(ranks[0,0].item())
+                 #       l_rank_liked.append(ranks[0,0].item())
                         l_avrg_rank_liked.append(avrg_rank)
                         l_mrr_liked.append(mrr)
                         l_rr_liked.append(rr)
@@ -804,7 +804,7 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                     elif r == 0.0:
                  #       print("Added to the DISliked movies ranking")
                         l_loss_disliked.append(error.item())
-                        l_rank_disliked.append(ranks[0,0].item())
+                 #       l_rank_disliked.append(ranks[0,0].item())
                         l_avrg_rank_disliked.append(avrg_rank)
                         l_mrr_disliked.append(mrr)
                         l_rr_disliked.append(rr)
@@ -819,7 +819,6 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
 
 
     return l_loss_liked, l_loss_disliked, \
-           l_rank_liked, l_rank_disliked, \
            l_avrg_rank_liked, l_avrg_rank_disliked, \
            l_mrr_liked, l_mrr_disliked, \
            l_rr_liked, l_rr_disliked, \
@@ -1241,8 +1240,8 @@ def EpochPlot(tup, title=''):
     print(y1)
     print(y0)
     
-    plt.plot(y1, label='with genres')
-    plt.plot(y0, label='without')
+    plt.plot(y1, label='with genres / liked')
+    plt.plot(y0, label='without / not liked')
     plt.title(title, fontweight="bold")
     plt.xlabel('epoch')
     plt.legend()
