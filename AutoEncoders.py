@@ -323,9 +323,8 @@ class GenresWrapperChrono(nn.Module):
                 one_hot_mat[i, g_idx] = 1
             # If CUDA available, make one_hot_mat CUDA
             if torch.cuda.is_available():
-                one_hot_mat = nn.Parameter(one_hot_mat, requires_grad=False)
-                print(one_hot_mat[0][0])
-                one_hot_mat.to('cuda')
+                print(one_hot_mat[0][0])               
+                one_hot_mat = self.g.new_tensor(one_hot_mat)
                 print(one_hot_mat[0][0])
             # Get the genres for each sample * top 100 normalized movies genres values
             print(inputs[0][0], self.g[0], one_hot_mat[0][0])
