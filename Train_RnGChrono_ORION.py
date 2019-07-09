@@ -190,9 +190,9 @@ for epoch in range(args.epoch):
     print('\n\n\n\n     ==> Epoch:', epoch, '\n')
     
     train_loss = Utils.TrainReconstruction(train_loader, model, criterion, optimizer, \
-                                           args.weights, args.completionTrain)
+                                           args.disliked, args.weights, args.completionTrain)
     eval_loss = Utils.EvalReconstruction(valid_loader, model, criterion, \
-                                         args.completionTrain)
+                                         args.disliked, args.completionTrain)
     
     
     """ """

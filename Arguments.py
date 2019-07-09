@@ -46,12 +46,15 @@ parser.add_argument('--noiseTrain', default=False, action='store_true', \
 parser.add_argument('--noiseEval', default=False, action='store_true', \
                     help='If arg added, mimics ReDial inputs by allowing only from 1 to 7 (random)\
                     ratings as inputs.')
+parser.add_argument('--disliked', default=False, action='store_true', \
+                    help='If arg added, ratings and masks are added, meaning we now have \
+                    for inputs: 0 = not seen, 1 = not liked and 2 = liked.')
 parser.add_argument('--weights', type=float, metavar='', default=1, \
                     help='Weights multiplying the errors on ratings of 0 (underrepresented) \
                     during training.  1 -> no weights')
-
 parser.add_argument('--patience', type=int, metavar='', default=1, \
                     help='number of epoch to wait without improvement in valid_loss before ending training')
+
 parser.add_argument('--completionTrain', type=float, metavar='', default=100, \
                     help='% of data used during 1 training epoch ~ "early stopping"')
 parser.add_argument('--completionPred', type=float, metavar='', default=100, \
