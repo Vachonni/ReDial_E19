@@ -468,19 +468,19 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
     
     """ """
    
-
+    print('TRAINING')
      
     for batch_idx, (masks, inputs, targets) in enumerate(train_loader):
         
         # Early stopping
         if batch_idx > nb_batch: 
-            print('EARLY stopping')
+            print(' *EARLY stopping')
             break
         
         # Print update
         if batch_idx % 100 == 0: 
-            print('Batch {} out of {}.  Loss:{}'.format(batch_idx, nb_batch,\
-                  train_loss/(batch_idx+1)))  
+            print('Batch {:4d} out of {:4.1f}.    Reconstruction Loss on targets: {:.4f}'\
+                  .format(batch_idx, nb_batch, train_loss/(batch_idx+1)))  
                 
         # Add weights on targets rated 0 because outnumbered by targets 1
         weights = (masks[1] == 1) * (targets == 0) * weights_factor + \
@@ -543,23 +543,27 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, weights_facto
 
 
 
+
+
 def EvalReconstruction(valid_loader, model, criterion, completion):
     model.eval()
     eval_loss = 0
     nb_batch = len(valid_loader) * completion / 100
+    
+    print('\nEVALUATION')
     
     with torch.no_grad():
         for batch_idx, (masks, inputs, targets) in enumerate(valid_loader):
             
             # Early stopping 
             if batch_idx > nb_batch: 
-                print('EARLY stopping')
+                print(' *EARLY stopping')
                 break
             
             # Print update
             if batch_idx % 100 == 0: 
-                print('Batch {} out of {}.  Loss:{}'.format(batch_idx, nb_batch,\
-                      eval_loss/(batch_idx+1)))  
+                print('Batch {:4d} out of {:4.1f}.    Reconstruction Loss on targets: {:.4f}'\
+                      .format(batch_idx, nb_batch, eval_loss/(batch_idx+1)))  
     
             pred = model(inputs)  
             
@@ -726,9 +730,25 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
     Same as EvalPredictionGenres, but values returned are complete (not their mean)
     """
     model.eval()
-    l_loss = []
-    l_rank_liked = []
-    l_rank_disliked = []
+    
+    # In order: g (genres) and l (liked). If not, then used 'n'
+    l_loss_gl = []
+    l_loss_nl = []
+    l_loss_gn = []
+    l_loss_nn = []
+    l_avrg_rank_gl= []
+    l_avrg_rank_nl= []
+    l_avrg_rank_gn= []
+    l_avrg_rank_nn= []
+    l_rr_gl = []
+    l_rr_nl = []    
+    l_rr_gn = []    
+    l_rr_nn = []
+    l_ndcg_gl = []
+    l_ndcg_nl = []
+    l_ndcg_gn = []
+    l_ndcg_nn = []
+    
     nb_batch = len(loader) * completion / 100
     
     with torch.no_grad():
@@ -762,7 +782,6 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                     inputs[0][0][i] = r
                     # Evaluate error
                     error = criterion(pred[0][i], r)
-                    l_loss.append(error.item())
                     # Ranking of this prediction among all predictions. 
                     # ranks is a 2D array of size (nb of pred with same value as m, position of value)
                     
@@ -775,19 +794,36 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                  #   ranks = (torch.sort(pred[0][Settings.l_ReDUiD], descending=True)[0] == pred[0][i]).nonzero() + 1
 #                    ranks_old = (torch.sort(pred[0], descending=True)[0] == pred[0][i]).nonzero() + 1
                     """ Trying to use function Ranks for consistency"""
-                    ranks, _, _, _, _ = Ranks(pred[0], pred[0][i].view(-1))
-                    ranks = torch.from_numpy(ranks).view(1,-1)
+                    _, avrg_rank, _, rr, ndcg = Ranks(pred[0], pred[0][i].view(-1))
+           #         ranks = torch.from_numpy(ranks).view(1,-1)
 #                    if (ranks_old[0,0] == ranks[0,0].long()).all().sum() != 1:
 #                        print('\n\n** DIFFERENT RANKS **',ranks_old[0,0], ranks[0,0].long(),'\n\n')
                     """ """
                  #   print("Value of rating (r) is:", r)
-                    if r == 1.0:
-                 #       print("Added to the liked movies ranking")
-                        l_rank_liked.append(ranks[0,0].item())
-                    elif r == 0.0:
-                 #       print("Added to the DISliked movies ranking")
-                        l_rank_disliked.append(ranks[0,0].item())
-                 #   print("number of predictions with same value", ranks.size()[0])
+                    # with genres and liked (gl case) 
+                    if inputs[1][0][0] != 1 and r == 1.0:
+                        l_loss_gl.append(error.item())
+                        l_avrg_rank_gl.append(avrg_rank)
+                        l_rr_gl.append(rr)
+                        l_ndcg_gl.append(ndcg)
+                    # with NO genres and liked (nl case) 
+                    if inputs[1][0][0] == 1 and r == 1.0:
+                        l_loss_nl.append(error.item())
+                        l_avrg_rank_nl.append(avrg_rank)
+                        l_rr_nl.append(rr)
+                        l_ndcg_nl.append(ndcg)
+                    # with genres and DISliked (gn case) 
+                    if inputs[1][0][0] != 1 and r == 0.0:
+                        l_loss_gn.append(error.item())
+                        l_avrg_rank_gn.append(avrg_rank)
+                        l_rr_gn.append(rr)
+                        l_ndcg_gn.append(ndcg)
+                    # with NO genres and DISliked (nn case) 
+                    if inputs[1][0][0] == 1 and r == 0.0:
+                        l_loss_nn.append(error.item())
+                        l_avrg_rank_nn.append(avrg_rank)
+                        l_rr_nn.append(rr)
+                        l_ndcg_nn.append(ndcg)
                     
                  # Early stoopping
                     count_pred += 1 
@@ -795,12 +831,12 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
                      #   print('stop at {} prediction for user'.format(count_pred), len(masks[0][0].nonzero()))
                         break
 
-                    
-    l_loss = np.array(l_loss)
-    l_rank_liked = np.array(l_rank_liked)
-    l_rank_disliked= np.array(l_rank_disliked)
 
-    return l_loss,l_rank_liked, l_rank_disliked
+    return l_loss_gl, l_loss_nl, l_loss_gn, l_loss_nn, \
+           l_avrg_rank_gl, l_avrg_rank_nl, l_avrg_rank_gn, l_avrg_rank_nn, \
+           l_rr_gl, l_rr_nl, l_rr_gn, l_rr_nn, \
+           l_ndcg_gl, l_ndcg_nl, l_ndcg_gn, l_ndcg_nn
+
 
 
 
@@ -1208,17 +1244,18 @@ def ChronoPlot(d1, d0, title=''):
     
 def EpochPlot(tup, title=''):
     """
-    Plot graph of 2 dict, doing mean of values
+    Plot graph of 4-tuples, doing mean of values
     """
         
-    y1 = [w1 for (w1, w0) in tup]
-    y0 = [w0 for (w1, w0) in tup]
-
-    print(y1)
-    print(y0)
+    ygl = [wgl for (wgl, wnl, wgn, wnn) in tup]
+    ynl = [wnl for (wgl, wnl, wgn, wnn) in tup]
+    ygn = [wgn for (wgl, wnl, wgn, wnn) in tup]
+    ynn = [wnn for (wgl, wnl, wgn, wnn) in tup]
     
-    plt.plot(y1, label='with genres')
-    plt.plot(y0, label='without')
+    plt.plot(ygl, 'C0', label='Genres + Liked')
+    plt.plot(ynl, 'C0--', label='No Genres + Liked')
+    plt.plot(ygn, 'C1', label='Genres + Not Liked')
+    plt.plot(ynn, 'C1--', label='No Genres & Not Liked')    
     plt.title(title, fontweight="bold")
     plt.xlabel('epoch')
     plt.legend()
