@@ -848,7 +848,7 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
 
 
 
-def EvalPredictionRnGChrono(valid_loader, model, criterion, completion, topx=100):
+def EvalPredictionRnGChrono(valid_loader, model, criterion, without_genres, completion, topx=100):
     """
     Prediction on targets = to be mentionned movies...
     
@@ -941,57 +941,58 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, completion, topx=100
             
             
     # WITHOUT GENRES
-            # Make a pred with genres removed from inputs. Genres indx at 1 and Genres UiD at 0 
-            inputs[1][0] = inputs[1][0] + 0 + 1
-            inputs[1][1] = inputs[1][1] * 0
-            pred = model(inputs)  
-            
-            # LOSS - Using only movies to be montionned that were rated
-       #     pred_masked = pred * masks[1]
-            nb_ratings = masks[1].sum()
-            loss = (criterion(pred, targets) * masks[1]).sum()
-            loss = loss / nb_ratings
-            eval_loss_without_genres += loss
-    
-    
-            """ Adding Sigmoid to pred if BCELogits used """
-            if model.model_pre.lla == 'none':
-                pred = torch.nn.Sigmoid()(pred)
-            """ """
-    
-    
-            # NRR & NDCG
-            # Need to evaluate each samples seperately, since diff number of targets
-            # For ReDial Chrono Dataset
-#            for i, sample in enumerate(pred[:,Settings.l_ReDUiD]):
-            for i, sample in enumerate(pred):
+            if without_genres:
+                # Make a pred with genres removed from inputs. Genres indx at 1 and Genres UiD at 0 
+                inputs[1][0] = inputs[1][0] + 0 + 1
+                inputs[1][1] = inputs[1][1] * 0
+                pred = model(inputs)  
                 
-                # Insure their is at least one target movie rated 1
-                # (if all rated 0, sample not considered)
-                if targets[i].sum() == 0: continue
-            
-                # Get error on pred ratings
-                error = ((criterion(pred[i], targets[i]) * masks[1][i]).sum() / masks[1][i].sum()).item()         
-                # ... get Ranks for targets (not masks[1] because only care about liked movies)
-                rk, avrg_rk, mrr, rr, ndcg = Ranks(sample, \
-                                                  pred[i][targets[i].nonzero().flatten().tolist()],\
-                                                  topx)
-                # Get the number of inputs mentionned before genres
-                qt_mentionned_before = masks[0][i].sum(dtype=torch.uint8).item()
+                # LOSS - Using only movies to be montionned that were rated
+           #     pred_masked = pred * masks[1]
+                nb_ratings = masks[1].sum()
+                loss = (criterion(pred, targets) * masks[1]).sum()
+                loss = loss / nb_ratings
+                eval_loss_without_genres += loss
+        
+        
+                """ Adding Sigmoid to pred if BCELogits used """
+                if model.model_pre.lla == 'none':
+                    pred = torch.nn.Sigmoid()(pred)
+                """ """
+        
+        
+                # NRR & NDCG
+                # Need to evaluate each samples seperately, since diff number of targets
+                # For ReDial Chrono Dataset
+    #            for i, sample in enumerate(pred[:,Settings.l_ReDUiD]):
+                for i, sample in enumerate(pred):
+                    
+                    # Insure their is at least one target movie rated 1
+                    # (if all rated 0, sample not considered)
+                    if targets[i].sum() == 0: continue
                 
-                # Add Ranks results to appropriate dict
-                if qt_mentionned_before in results_RR_without_genres.keys():
-                    results_error_without_genres[qt_mentionned_before].append(error)
-                    results_Avrg_Ranks_without_genres[qt_mentionned_before].append(avrg_rk)
-                    results_MRR_without_genres[qt_mentionned_before].append(mrr)
-                    results_RR_without_genres[qt_mentionned_before].append(rr)
-                    results_DCG_without_genres[qt_mentionned_before].append(ndcg)
-                else:
-                    results_error_without_genres[qt_mentionned_before] = [error]
-                    results_Avrg_Ranks_without_genres[qt_mentionned_before] = [avrg_rk]
-                    results_MRR_without_genres[qt_mentionned_before] = [mrr]
-                    results_RR_without_genres[qt_mentionned_before] = [rr]
-                    results_DCG_without_genres[qt_mentionned_before] = [ndcg]
+                    # Get error on pred ratings
+                    error = ((criterion(pred[i], targets[i]) * masks[1][i]).sum() / masks[1][i].sum()).item()         
+                    # ... get Ranks for targets (not masks[1] because only care about liked movies)
+                    rk, avrg_rk, mrr, rr, ndcg = Ranks(sample, \
+                                                      pred[i][targets[i].nonzero().flatten().tolist()],\
+                                                      topx)
+                    # Get the number of inputs mentionned before genres
+                    qt_mentionned_before = masks[0][i].sum(dtype=torch.uint8).item()
+                    
+                    # Add Ranks results to appropriate dict
+                    if qt_mentionned_before in results_RR_without_genres.keys():
+                        results_error_without_genres[qt_mentionned_before].append(error)
+                        results_Avrg_Ranks_without_genres[qt_mentionned_before].append(avrg_rk)
+                        results_MRR_without_genres[qt_mentionned_before].append(mrr)
+                        results_RR_without_genres[qt_mentionned_before].append(rr)
+                        results_DCG_without_genres[qt_mentionned_before].append(ndcg)
+                    else:
+                        results_error_without_genres[qt_mentionned_before] = [error]
+                        results_Avrg_Ranks_without_genres[qt_mentionned_before] = [avrg_rk]
+                        results_MRR_without_genres[qt_mentionned_before] = [mrr]
+                        results_RR_without_genres[qt_mentionned_before] = [rr]
+                        results_DCG_without_genres[qt_mentionned_before] = [ndcg]
     
          #  if batch_idx > 10: break
     
@@ -1215,7 +1216,7 @@ def Ranks(all_values, values_to_rank, topx = 0):
 
 
     
-def ChronoPlot(d1, d0, title=''):
+def ChronoPlot(d1, d0, title, label1='with genres', label2='without'):
     """
     Plot graph of 2 dict, doing mean of values
     """
@@ -1235,9 +1236,9 @@ def ChronoPlot(d1, d0, title=''):
         d0x.append(k)
         d0y.append(mean(v))
         d0mean += v
-
-    plt.plot(d1x, d1y, label='with genres')
-    plt.plot(d0x, d0y, label='without')
+    
+    plt.plot(d1x, d1y, label=label1)
+    plt.plot(d0x, d0y, label=label2)
     plt.title(title, fontweight="bold")
     plt.xlabel('Nb of mentionned movies before prediction')
     plt.legend()
