@@ -237,7 +237,15 @@ for epoch in range(args.epoch):
         Utils.EpochPlot(l_rr_epoch, 'Avrg RR by epoch, PredRaw')
         l_ndcg_epoch.append((mean(ngl), mean(nnl), mean(ngn), mean(nnn)))
         Utils.EpochPlot(l_ndcg_epoch, 'Avrg NDCG by epoch, PredRaw')      
-    
+        print('\n\nRANKS (avrg)')
+        print("Avrg liked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agl+anl), \
+              mean(agl+anl)/nb_movies*100))
+        print("Avrg disliked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agn+ann), \
+              mean(agn+ann)/nb_movies*100))
+        print('\nNDCG (avrg)')
+        print("Liked: {:.4f}".format(mean(ngl+nnl)))
+        print("Not liked: {:.4f}".format(mean(ngn+nnn)))
+
 
 
     # Patience - Stop if the Model didn't improve in the last 'patience' epochs
@@ -255,7 +263,7 @@ for epoch in range(args.epoch):
     precedent_losses = valid_losses[:-1]
     if precedent_losses == []: precedent_losses = [0]     # Cover 1st epoch for min([])'s error
     if epoch == 0 or eval_loss < min(precedent_losses):
-        print('\n   Saving...')
+        print('\n\n   Saving...')
         state = {
                 'epoch': epoch,
                 'eval_loss': eval_loss,
