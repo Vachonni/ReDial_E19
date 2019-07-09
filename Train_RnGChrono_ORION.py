@@ -142,14 +142,14 @@ train_dataset = Utils.RnGChronoDataset(train_data, dict_genresInter_idx_UiD, \
 valid_dataset = Utils.RnGChronoDataset(valid_data, dict_genresInter_idx_UiD, \
                                        nb_movies, popularity, args.DEVICE, args.exclude_genres, \
                                        args.no_data_merge, args.noiseEval, args.top_cut)
-# Use only samples where there is a genres mention
-valid_g_dataset = Utils.RnGChronoDataset(valid_g_data, dict_genresInter_idx_UiD, \
-                                         nb_movies, popularity, args.DEVICE, args.exclude_genres, \
-                                         args.no_data_merge, args.noiseEval, args.top_cut)
-# FOR CHRONO (hence no_data_merge is True) + use only samples where there is a genres mention
-valid_chrono_dataset = Utils.RnGChronoDataset(valid_g_data, dict_genresInter_idx_UiD, \
-                                         nb_movies, popularity, args.DEVICE, args.exclude_genres, \
-                                         True, args.noiseEval, args.top_cut)           
+## Use only samples where there is a genres mention
+#valid_g_dataset = Utils.RnGChronoDataset(valid_g_data, dict_genresInter_idx_UiD, \
+#                                         nb_movies, popularity, args.DEVICE, args.exclude_genres, \
+#                                         args.no_data_merge, args.noiseEval, args.top_cut)
+## FOR CHRONO (hence no_data_merge is True) + use only samples where there is a genres mention
+#valid_chrono_dataset = Utils.RnGChronoDataset(valid_g_data, dict_genresInter_idx_UiD, \
+#                                         nb_movies, popularity, args.DEVICE, args.exclude_genres, \
+#                                         True, args.noiseEval, args.top_cut)           
 
 
 ######## CREATE DATALOADER
@@ -162,9 +162,9 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,
 valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch,\
                                            shuffle=True, drop_last=True, **kwargs)    
 # For PredRaw - Loader of only 1 sample (user) 
-loader_bs1 = torch.utils.data.DataLoader(valid_dataset, batch_size=1, shuffle=True, **kwargs)
-# For PredChrono
-valid_chrono_loader = torch.utils.data.DataLoader(valid_chrono_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
+valid_bs1_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=1, shuffle=True, **kwargs)
+## For PredChrono
+#valid_chrono_loader = torch.utils.data.DataLoader(valid_chrono_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
 
 
 
@@ -227,7 +227,7 @@ for epoch in range(args.epoch):
         
         print('\n\nMaking predictions...\n')
         lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
-             Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPredEpoch)
+             Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.completionPredEpoch)
          
         l_loss_epoch.append((mean(lgl), mean(lnl), mean(lgn), mean(lnn)))
         Utils.EpochPlot(l_loss_epoch, 'Avrg error by epoch, PredRaw')
@@ -286,7 +286,7 @@ for epoch in range(args.epoch):
 if args.completionPred != args.completionPredEpoch:
     print('\n\nMaking final predicitons...\n')
     lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
-             Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPred)
+             Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.completionPred)
 
 
 print("\n\n\n\n\n  ====> RESULTS <==== \n\n")
