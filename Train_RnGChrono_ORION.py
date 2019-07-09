@@ -225,50 +225,19 @@ for epoch in range(args.epoch):
 #    old_g = model.g.data.clone()
     
     
-    
-    # CHRONO EVALUATION
 
-    if args.completionPredChrono != 0:
-        print("\n\n\n\nEvaluating prediction error CHORNOLOGICAL...")
- 
-        l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
-             Utils.EvalPredictionRnGChrono(valid_chrono_loader, model, \
-                                           criterion, args.completionPredChrono, args.topx)
         
         
-        print("\n  ====> RESULTS <==== \n")
-        print("Global avrg pred error with {:.4f} and without {:.4f}".format(l1, l0))
-    
-        
-        print("\n  ==> BY Nb of mentions, on to be mentionned Liked <== \n")
-        
-        
-        avrg_e1, avrg_e0 = Utils.ChronoPlot(e1, e0, 'Avrg pred error')
-        print("ReDial liked avrg pred error with {:.4f} and without {:.4f}".format(avrg_e1, avrg_e0))
-        
-        avrg_a1, avrg_a0 = Utils.ChronoPlot(a1, a0, 'Avrg_rank')
-        print("ReDial liked avrg ranks with {:.2f} and without {:.2f}".format(avrg_a1, avrg_a0))
-        
-        avrg_mr1, avrg_mr0 = Utils.ChronoPlot(mr1, mr0, 'MMRR')
-        print("ReDial MMRR with {:.2f} and without {:.2f}".format(avrg_mr1, avrg_mr0))
-        
-        avrg_r1, avrg_r0 = Utils.ChronoPlot(r1, r0, 'MRR')
-        print("ReDial MRR with {:.2f} and without {:.2f}".format(avrg_r1, avrg_r0))
-        
-        avrg_d1, avrg_d0 = Utils.ChronoPlot(d1, d0, 'NDCG')
-        print("ReDial NDCG with {:.2f} and without {:.2f}".format(avrg_d1, avrg_d0))
-        
-        
-        # BY EPOCH GRAPHS
-        
-        print("\n\n\n\n  => BY Epoch <= \n")
-        global_pred_err_epoch.append((l1.item(),l0.item()))
-        ReDial_pred_err_epoch.append((avrg_e1,avrg_e0))
-        avrg_ranks_epoch.append((avrg_a1,avrg_a0))
-        
-        Utils.EpochPlot(global_pred_err_epoch, 'Global avrg pred error')
-        Utils.EpochPlot(ReDial_pred_err_epoch, 'ReDial liked avrg pred error')
-        Utils.EpochPlot(avrg_ranks_epoch, 'ReDial liked avrg ranks')
+#        # BY EPOCH GRAPHS
+#        
+#        print("\n\n\n\n  => BY Epoch <= \n")
+#        global_pred_err_epoch.append((l1.item(),l0.item()))
+#        ReDial_pred_err_epoch.append((avrg_e1,avrg_e0))
+#        avrg_ranks_epoch.append((avrg_a1,avrg_a0))
+#        
+#        Utils.EpochPlot(global_pred_err_epoch, 'Global avrg pred error')
+#        Utils.EpochPlot(ReDial_pred_err_epoch, 'ReDial liked avrg pred error')
+#        Utils.EpochPlot(avrg_ranks_epoch, 'ReDial liked avrg ranks')
     
     
     # PRINT BY EPOCH ON DATA NO CHRONO
@@ -328,95 +297,80 @@ for epoch in range(args.epoch):
 
 # FOR GLOBAL - OLD EVALUATION
 
-print('\nPredRaw...')
+#print('\nPredRaw...')
+#
+#pred_err, pred_rank_liked, pred_rank_disliked = Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPred)
 
-pred_err, pred_rank_liked, pred_rank_disliked = Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPred)
 
-
-print("\n  ====> RESULTS <==== \n")
+print("\n\n\n\n\n  ====> RESULTS <==== \n\n")
 
 if len(train_losses) - train_losses.index(min(train_losses)) > patience:
     train_err = round(train_losses[-patience].item(), 4)
 else: 
     train_err = round(train_losses[-1].item(), 4)
-print("Best reconstruction loss TRAIN: {}".format(train_err))
+print("Best Reconstruction Loss TRAIN: {}".format(train_err))
 
 if len(valid_losses) - valid_losses.index(min(valid_losses)) > patience:
     valid_err = round(valid_losses[-(patience+1)].item(), 4)
 else: 
     valid_err = round(valid_losses[-1].item(), 4)
-print("Best reconstruction loss VALID: {}".format(valid_err))
+print("Best Reconstruction Loss VALID: {}".format(valid_err))
 
-print("\nAvrg prediction error: {}".format(round(pred_err.mean(), 4)))
-#print("\nAvrg liked ranking: {}, which is in first {}%".format(int(pred_rank_liked.mean()), \
-#      round(pred_rank_liked.mean()/len(Settings.l_ReDUiD)*100, 1)))
-#print("Avrg disliked ranking: {}, which is in first {}%".format(int(pred_rank_disliked.mean()), \
-#      round(pred_rank_disliked.mean()/len(Settings.l_ReDUiD)*100, 1)))
-print("\nAvrg liked ranking: {}, which is in first {}%".format(int(pred_rank_liked.mean()), \
-      round(pred_rank_liked.mean()/nb_movies*100, 1)))
-print("Avrg disliked ranking: {}, which is in first {}%".format(int(pred_rank_disliked.mean()), \
-      round(pred_rank_disliked.mean()/nb_movies*100, 1)))
+print("\nAvrg Prediction Error on Liked: {:.4f}".format(mean(lgl+lnl)))
+print("Avrg Prediction Error on Not Liked: {:.4f}".format(mean(lgn+lnn)))
+
+print('\n\n\nRANKS (avrg)\n')
+print("Avrg liked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agl+anl), \
+      mean(agl+anl)/nb_movies*100))
+print("Avrg disliked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agn+ann), \
+      mean(agn+ann)/nb_movies*100))
+print('-----')
+print("Genres + liked: {:.0f}".format(mean(agl)))
+print("No Genres + liked: {:.0f}".format(mean(anl)))
+print("Genres + Not liked: {:.0f}".format(mean(agn)))
+print("No Genres + Not liked: {:.0f}".format(mean(ann)))
 
 
+print('\n\n\nNDCG (avrg)\n')
+print("Liked: {:.4f}".format(mean(ngl+nnl)))
+print("Not liked: {:.4f}".format(mean(ngn+nnn)))
+print('-----')
+print("Genres + liked: {:.4f}".format(mean(ngl)))
+print("No Genres + liked: {:.4f}".format(mean(nnl)))
+print("Genres + Not liked: {:.4f}".format(mean(ngn)))
+print("No Genres + Not liked: {:.4f}".format(mean(nnn)))
 
 #%%
 
-
-# Eval average nDCG and MRR for liked
-ndcg = []
-mrr = []
-for r in pred_rank_liked:
-    # In Numpy
-    r = np.array([r])
-    ndcg.append(Utils.nDCG(r, 100))
-    mrr.append(Utils.RR(r))
-
-print('For linked movies, average nDCG is', mean(ndcg), 'and MRR is', mean(mrr))
-
-# Eval average nDCG and MRR for disliked
-ndcg = []
-mrr = []
-for r in pred_rank_disliked:
-    # In Numpy
-    r = np.array([r])
-    ndcg.append(Utils.nDCG(r, 100))
-    mrr.append(Utils.RR(r))
-
-print('\nFor disliked linked movies, average nDCG is', mean(ndcg), 'and MRR is', mean(mrr))
-
-print("\nParameter g = ", model.g.data)
-print("\n g average:", model.g.data.mean())
-
-print("\n\n\n\n\n\n\n")   
-
-
-
-# For Orion, print results (MongoDB,...)
-if args.orion:
-    report_results([dict(
-        name='valid_pred_rank_liked',
-        type='objective',
-        value=pred_rank_liked),
-        dict(
-        name='valid_pred_rank_DISliked',
-        type='constraint',
-        value=pred_rank_disliked),
-        dict(
-        name='valid_pred_error',
-        type='constraint',
-        value=pred_err),
-        dict(
-        name='valid_reconst_error',
-        type='constraint',
-        value=valid_err),
-        dict(
-        name='g',
-        type='constraint',
-        value=model.g.data.item())])
-
-     
+#
+#
+## For Orion, print results (MongoDB,...)
+#if args.orion:
+#    report_results([dict(
+#        name='valid_pred_rank_liked',
+#        type='objective',
+#        value=pred_rank_liked),
+#        dict(
+#        name='valid_pred_rank_DISliked',
+#        type='constraint',
+#        value=pred_rank_disliked),
+#        dict(
+#        name='valid_pred_error',
+#        type='constraint',
+#        value=pred_err),
+#        dict(
+#        name='valid_reconst_error',
+#        type='constraint',
+#        value=valid_err),
+#        dict(
+#        name='g',
+#        type='constraint',
+#        value=model.g.data.item())])
+#
+#     
 #%%
 
+print('\n\n\n\n\n')
     
 plt.plot(pred_mean_values)
 plt.title('Avrg Pred value by batch')

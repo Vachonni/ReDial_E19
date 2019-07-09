@@ -1252,10 +1252,10 @@ def EpochPlot(tup, title=''):
     ygn = [wgn for (wgl, wnl, wgn, wnn) in tup]
     ynn = [wnn for (wgl, wnl, wgn, wnn) in tup]
     
-    plt.plot(ygl, label='with genres & liked')
-    plt.plot(ynl, label='without genres & liked')
-    plt.plot(ygn, label='with genres & disliked')
-    plt.plot(ynn, label='without genres & disliked')    
+    plt.plot(ygl, 'C0', label='Genres + Liked')
+    plt.plot(ynl, 'C0--', label='No Genres + Liked')
+    plt.plot(ygn, 'C1', label='Genres + Not Liked')
+    plt.plot(ynn, 'C1--', label='No Genres & Not Liked')    
     plt.title(title, fontweight="bold")
     plt.xlabel('epoch')
     plt.legend()
