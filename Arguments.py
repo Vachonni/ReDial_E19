@@ -13,7 +13,7 @@ List of argumnents usable with parser
 import argparse
 
 
-parser = argparse.ArgumentParser(description='Train an AutoEncoder Recommender')
+parser = argparse.ArgumentParser(description='Train an AutoEncoder Recommender and Pred')
 
 
 
@@ -63,6 +63,9 @@ parser.add_argument('--completionPredEpoch', type=float, metavar='', default=100
                     help='% of data used for prediction during training (each epoch)')
 parser.add_argument('--EARLY', default=False, action='store_true', \
                     help="If arg added, Train at 10%, Pred at 1% and PredChrono at 1%")
+# ...for Pred file
+parser.add_argument('--completionPredChrono', type=float, metavar='', default=100, \
+                    help='% of data used for prediction')
 
 
 
@@ -84,6 +87,15 @@ parser.add_argument('--last_layer_activation', type=str, metavar='', default='no
 parser.add_argument('--preModel', type=str, metavar='', default='none', \
                     help='Path to a pre-trained model to start with. Should \
                     include a GenresWrapper of same type')
+# ...for Pred file
+parser.add_argument('--M1_path', type=str, metavar='', default='none', \
+                    help='Path to a Model 1')
+parser.add_argument('--M1_label', type=str, metavar='', default='none', \
+                    help='Label for Model 1')
+parser.add_argument('--M2_path', type=str, metavar='', default='none', \
+                    help='Path to a Model 2')
+parser.add_argument('--M2_label', type=str, metavar='', default='none', \
+                    help='Label to a Model 1')
 
 
 # Genres 
