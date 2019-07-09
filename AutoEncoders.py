@@ -326,6 +326,7 @@ class GenresWrapperChrono(nn.Module):
                 one_hot_mat = nn.Parameter(one_hot_mat, requires_grad=False)
                 one_hot_mat.to('cuda')
             # Get the genres for each sample * top 100 normalized movies genres values
+            print(inputs[0][0], self.g[0], one_hot_mat[0][0])
             x = inputs[0] + (self.g * one_hot_mat).sum(1, keepdim=True) * inputs[1][1]                
         
         return self.model_pre(x)
