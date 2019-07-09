@@ -304,7 +304,7 @@ class GenresWrapperChrono(nn.Module):
         if self.g_type == 'genres':
             # Load all genres intersection and their UiD associated
             self.dict_genresInter_idx_UiD = \
-            json.load(open('/Users/nicholas/ReDial/DataProcessed/dict_genresInter_idx_UiD.json'))           
+            json.load(open('./Data/dict_genresInter_idx_UiD.json'))           
             # Create g_g parameters that will weight the genres inputs (SHARED parameters by genres)
             self.g = nn.Parameter(torch.rand(1, len(self.dict_genresInter_idx_UiD))/10)            
         if self.g_type == 'unit':
