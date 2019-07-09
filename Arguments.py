@@ -55,9 +55,9 @@ parser.add_argument('--patience', type=int, metavar='', default=1, \
 parser.add_argument('--completionTrain', type=float, metavar='', default=100, \
                     help='% of data used during 1 training epoch ~ "early stopping"')
 parser.add_argument('--completionPred', type=float, metavar='', default=100, \
-                    help='% of data used for prediction')
-parser.add_argument('--completionPredChrono', type=float, metavar='', default=100, \
-                    help='% of data used for chrono prediction')
+                    help='% of data used for final prediction')
+parser.add_argument('--completionPredEpoch', type=float, metavar='', default=100, \
+                    help='% of data used for prediction during training (each epoch)')
 parser.add_argument('--EARLY', default=False, action='store_true', \
                     help="If arg added, Train at 10%, Pred at 1% and PredChrono at 1%")
 
@@ -128,7 +128,7 @@ if args.criterion == 'BCEWLL':
 # Pourcentage
 assert 0 <= args.completionTrain <=100,'completionTrain should be in [0,100]'
 assert 0 <= args.completionPred <=100,'completionPred should be in [0,100]'
-assert 0 <= args.completionPredChrono <=100,'completionPredChrono should be in [0,100]'
+assert 0 <= args.completionPredEpoch <=100,'completionPredEpoch should be in [0,100]'
 
 
 
@@ -140,6 +140,6 @@ assert 0 <= args.completionPredChrono <=100,'completionPredChrono should be in [
 if args.EARLY:
     args.completionTrain = 10 
     args.completionPred = 1
-    args.completionPredChrono = 1
+    args.completionPredEpoch = 1
     
     

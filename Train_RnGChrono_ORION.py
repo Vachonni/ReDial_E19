@@ -181,8 +181,6 @@ l_ndcg_epoch = []
 
 pred_mean_values = []
 
-#old_g = torch.zeros(1).to(args.DEVICE)
-
 
 
 
@@ -221,41 +219,24 @@ for epoch in range(args.epoch):
     print("Parameter g - Avrg: {:.4f} Min: {:.4f} Max: {:.4f}" \
           .format(model.g.data.mean().item(), model.g.data.min().item(), \
                   model.g.data.max().item()))
-#    print('g equal?', (old_g == model.g.data).all())
-#    old_g = model.g.data.clone()
     
     
-
+    
+    # PRINT PRED BY EPOCH (if args says so)
+    if args.completionPredEpoch != 0:
         
-        
-#        # BY EPOCH GRAPHS
-#        
-#        print("\n\n\n\n  => BY Epoch <= \n")
-#        global_pred_err_epoch.append((l1.item(),l0.item()))
-#        ReDial_pred_err_epoch.append((avrg_e1,avrg_e0))
-#        avrg_ranks_epoch.append((avrg_a1,avrg_a0))
-#        
-#        Utils.EpochPlot(global_pred_err_epoch, 'Global avrg pred error')
-#        Utils.EpochPlot(ReDial_pred_err_epoch, 'ReDial liked avrg pred error')
-#        Utils.EpochPlot(avrg_ranks_epoch, 'ReDial liked avrg ranks')
-    
-    
-    # PRINT BY EPOCH ON DATA NO CHRONO
-    
-    print('\nPredRaw...')
-    
-    lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
-         Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPred)
-     
-    l_loss_epoch.append((mean(lgl), mean(lnl), mean(lgn), mean(lnn)))
-    Utils.EpochPlot(l_loss_epoch, 'Avrg error by epoch, PredRaw')
-    l_avrg_rank_epoch.append((mean(agl), mean(anl), mean(agn), mean(ann)))
-    Utils.EpochPlot(l_avrg_rank_epoch, 'Avrg ranks by epoch, PredRaw')
-    l_rr_epoch.append((mean(rgl), mean(rnl), mean(rgn), mean(rnn)))
-    Utils.EpochPlot(l_rr_epoch, 'Avrg RR by epoch, PredRaw')
-    l_ndcg_epoch.append((mean(ngl), mean(nnl), mean(ngn), mean(nnn)))
-    Utils.EpochPlot(l_ndcg_epoch, 'Avrg NDCG by epoch, PredRaw')    
-    
+        print('\n\nMaking predictions...\n')
+        lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
+             Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPredEpoch)
+         
+        l_loss_epoch.append((mean(lgl), mean(lnl), mean(lgn), mean(lnn)))
+        Utils.EpochPlot(l_loss_epoch, 'Avrg error by epoch, PredRaw')
+        l_avrg_rank_epoch.append((mean(agl), mean(anl), mean(agn), mean(ann)))
+        Utils.EpochPlot(l_avrg_rank_epoch, 'Avrg ranks by epoch, PredRaw')
+        l_rr_epoch.append((mean(rgl), mean(rnl), mean(rgn), mean(rnn)))
+        Utils.EpochPlot(l_rr_epoch, 'Avrg RR by epoch, PredRaw')
+        l_ndcg_epoch.append((mean(ngl), mean(nnl), mean(ngn), mean(nnn)))
+        Utils.EpochPlot(l_ndcg_epoch, 'Avrg NDCG by epoch, PredRaw')      
     
 
 
@@ -267,6 +248,7 @@ for epoch in range(args.epoch):
         print('-  Recent valid losses:', valid_losses[-patience:])
         print('--------------------------------------------------------------------------------')
         break
+
 
     
     # SAVING - Fisrt model and model that improves valid reconstruction loss
@@ -289,17 +271,14 @@ for epoch in range(args.epoch):
 
 
 
-
-
-
 #%%
-######## PREDICITON ERROR EVALUATION ON FINAL MODEL ########
+######## FINAL PREDICITON  ########
 
-# FOR GLOBAL - OLD EVALUATION
-
-#print('\nPredRaw...')
-#
-#pred_err, pred_rank_liked, pred_rank_disliked = Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPred)
+# If different qt of data for final and by epoch, recalculate
+if args.completionPred != args.completionPredEpoch:
+    print('\n\nMaking final predicitons...\n')
+    lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
+             Utils.EvalPredictionGenresRaw(loader_bs1, model, criterion, args.completionPred)
 
 
 print("\n\n\n\n\n  ====> RESULTS <==== \n\n")
@@ -339,6 +318,7 @@ print("Genres + liked: {:.4f}".format(mean(ngl)))
 print("No Genres + liked: {:.4f}".format(mean(nnl)))
 print("Genres + Not liked: {:.4f}".format(mean(ngn)))
 print("No Genres + Not liked: {:.4f}".format(mean(nnn)))
+
 
 #%%
 
