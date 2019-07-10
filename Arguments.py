@@ -38,7 +38,7 @@ parser.add_argument('--no_data_merge', default=False, action='store_true', \
 parser.add_argument('--lr', type=float, metavar='', default=0.001, help='Learning rate')
 parser.add_argument('--batch', type=int, metavar='', default=64, help='Batch size')
 parser.add_argument('--epoch', type=int, metavar='', default=1000, help='Number of epoch')
-parser.add_argument('--criterion', type=str, metavar='', default='BCEWLL', \
+parser.add_argument('--loss_fct', type=str, metavar='', default='BCEWLL', \
                     choices=['BCEWLL', 'BCE'], help='Loss function')
 parser.add_argument('--noiseTrain', default=False, action='store_true', \
                     help='If arg added, mimics ReDial inputs by allowing only from 1 to 7 (random)\
@@ -135,9 +135,9 @@ args = parser.parse_args()
 # ASSERTIONS
 
 
-if args.criterion == 'BCE':
+if args.loss_fct == 'BCE':
     assert args.last_layer_activation != 'none','Need last layer activation with BCE'
-if args.criterion == 'BCEWLL':
+if args.loss_fct == 'BCEWLL':
     assert args.last_layer_activation == 'none',"Last layer activation must be 'none' with BCEWLL"
 
 # Pourcentage
