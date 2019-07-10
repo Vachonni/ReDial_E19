@@ -235,7 +235,8 @@ else:
     print("\n  ==> BY Nb of mentions, on to be mentionned Liked <== \n")
     
     avrg_e1, avrg_e2 = Utils.ChronoPlot(e1, e2, 'Avrg pred error', args.M1_label, args.M2_label)
-    print("ReDial liked avrg pred error with {:.4f} and without {:.4f}".format(avrg_e1, avrg_e2))
+    print("ReDial liked avrg pred error {} {:.4f} and {} {:.4f}"\
+          .format(args.M1_label,avrg_e1, args.M2_label, avrg_e2))
     
     avrg_a1, avrg_a2 = Utils.ChronoPlot(a1, a2, 'Avrg_rank', args.M1_label, args.M2_label)
     print("ReDial liked avrg ranks with {:.2f} and without {:.2f}".format(avrg_a1, avrg_a2))
