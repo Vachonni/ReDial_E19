@@ -269,7 +269,12 @@ for epoch in range(args.epoch):
                 'eval_loss': eval_loss,
                 'state_dict': model.state_dict(),
                 'optimizer': optimizer.state_dict(),
-                'losses': losses
+                'losses': losses,
+                'layers': layers,
+                'activations': args.activations,
+                'lla': args.last_layer_activation,
+                'criterion': args.criterion,
+                'g_type': args.g_type
                 }
         torch.save(state, './Results/'+args.id+'.pth')
         print('......saved.')
