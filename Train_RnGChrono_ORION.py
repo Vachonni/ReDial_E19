@@ -80,40 +80,72 @@ if args.preModel == 'none':
         layers = [nb_movies, args.layer1]
     else: 
         layers = [nb_movies, args.layer1, args.layer2]
-
-    # Model
-    model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type=args.activations, \
-                                                    is_constrained=False, dp_drop_prob=0.0, \
-                                                    last_layer_activations=False,\
-                                                    lla = args.last_layer_activation).to(args.DEVICE)
-    model = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
- 
-    # Criterion
-    if args.criterion == 'BCEWLL':
-        criterion = torch.nn.BCEWithLogitsLoss(reduction='none')
-    elif args.criterion == 'BCE':
-        criterion = torch.nn.BCELoss(reduction='none')
+        
+    activations = args.activations
+    last_layer_activation = args.last_layer_activation
+    g_type = args.g_type
+    loss_fct = args.loss_fct
+    
+#    # Model
+#    model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type=args.activations, \
+#                                                    is_constrained=False, dp_drop_prob=0.0, \
+#                                                    last_layer_activations=False,\
+#                                                    lla = args.last_layer_activation).to(args.DEVICE)
+#    model = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
+# 
+#    # Criterion
+#    if args.criterion == 'BCEWLL':
+#        criterion = torch.nn.BCEWithLogitsLoss(reduction='none')
+#    elif args.criterion == 'BCE':
+#        criterion = torch.nn.BCELoss(reduction='none')
 
 
 ######## LOAD EXISTING MODEL
 else:
     print('******* Load EXISTING Model *******')   
     
-    # Model
     checkpoint = torch.load(args.preModel, map_location=args.DEVICE)
-    model_base = AutoEncoders.AsymmetricAutoEncoder(checkpoint['layers'], \
-                                                    nl_type=checkpoint['activations'], \
-                                                    is_constrained=False, dp_drop_prob=0.0, \
-                                                    last_layer_activations=False, \
-                                                    lla = checkpoint['lla']).to(args.DEVICE)
-    model = AutoEncoders.GenresWrapperChrono(model_base, checkpoint['g_type']).to(args.DEVICE)
-    model.load_state_dict(checkpoint['state_dict'])
     
-    #Criterion
-    if checkpoint['criterion'] == 'BCEWLL':
-        criterion = torch.nn.BCEWithLogitsLoss(reduction='none')
-    elif checkpoint['criterion'] == 'BCE':
-        criterion = torch.nn.BCELoss(reduction='none')
+    layers = checkpoint['layers']
+    activations = checkpoint['activations']
+    last_layer_activation = checkpoint['last_layer_activation']
+    g_type = checkpoint['g_type']
+    loss_fct = checkpoint['loss_fct']
+    
+#    checkpoint = torch.load(args.preModel, map_location=args.DEVICE)
+#    model_base = AutoEncoders.AsymmetricAutoEncoder(checkpoint['layers'], \
+#                                                    nl_type=checkpoint['activations'], \
+#                                                    is_constrained=False, dp_drop_prob=0.0, \
+#                                                    last_layer_activations=False, \
+#                                                    lla = checkpoint['lla']).to(args.DEVICE)
+#    model = AutoEncoders.GenresWrapperChrono(model_base, checkpoint['g_type']).to(args.DEVICE)
+#    model.load_state_dict(checkpoint['state_dict'])
+#    
+#    #Criterion
+#    if checkpoint['criterion'] == 'BCEWLL':
+#        criterion = torch.nn.BCEWithLogitsLoss(reduction='none')
+#    elif checkpoint['criterion'] == 'BCE':
+#        criterion = torch.nn.BCELoss(reduction='none')
+
+
+# Model
+model_base = AutoEncoders.AsymmetricAutoEncoder(layers, \
+                                                nl_type=activations, \
+                                                is_constrained=False, dp_drop_prob=0.0, \
+                                                last_layer_activations=False, \
+                                                lla = last_layer_activation).to(args.DEVICE)
+model = AutoEncoders.GenresWrapperChrono(model_base, g_type).to(args.DEVICE)
+
+# If existing, load parameters
+if args.preModel != 'none':
+    model.load_state_dict(checkpoint['state_dict'])
+
+#Criterion
+if loss_fct == 'BCEWLL':
+    criterion = torch.nn.BCEWithLogitsLoss(reduction='none')
+elif loss_fct == 'BCE':
+    criterion = torch.nn.BCELoss(reduction='none')
+
 
 
 
@@ -285,10 +317,10 @@ for epoch in range(args.epoch):
                 'optimizer': optimizer.state_dict(),
                 'losses': losses,
                 'layers': layers,
-                'activations': args.activations,
-                'lla': args.last_layer_activation,
-                'criterion': args.criterion,
-                'g_type': args.g_type
+                'activations': activations,
+                'last_layer_activation': last_layer_activation,
+                'loss_fct': loss_fct,
+                'g_type': g_type
                 }
         torch.save(state, './Results/'+args.id+'.pth')
         print('......saved.')
@@ -345,6 +377,34 @@ print("Genres + liked: {:.4f}".format(mean(ngl)))
 print("No Genres + liked: {:.4f}".format(mean(nnl)))
 print("Genres + Not liked: {:.4f}".format(mean(ngn)))
 print("No Genres + Not liked: {:.4f}".format(mean(nnn)))
+
+
+# Now printing results to .txt file:
+with open('./Results/'+args.id+'.txt', 'w') as f:
+    
+    f.write("Avrg Prediction Error on Liked: {:.4f}".format(mean(lgl+lnl)))
+    f.write("\nAvrg Prediction Error on Not Liked: {:.4f}".format(mean(lgn+lnn)))
+    
+    f.write('\n\n\n\nRANKS (avrg)\n')
+    f.write("\nAvrg liked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agl+anl), \
+          mean(agl+anl)/nb_movies*100))
+    f.write("\nAvrg disliked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agn+ann), \
+          mean(agn+ann)/nb_movies*100))
+    f.write('\n-----')
+    f.write("\nGenres + liked: {:.0f}".format(mean(agl)))
+    f.write("\nNo Genres + liked: {:.0f}".format(mean(anl)))
+    f.write("\nGenres + Not liked: {:.0f}".format(mean(agn)))
+    f.write("\nNo Genres + Not liked: {:.0f}".format(mean(ann)))
+    
+    f.write('\n\n\n\nNDCG (avrg)\n')
+    f.write("\nLiked: {:.4f}".format(mean(ngl+nnl)))
+    f.write("\nNot liked: {:.4f}".format(mean(ngn+nnn)))
+    f.write('\n-----')
+    f.write("\nGenres + liked: {:.4f}".format(mean(ngl)))
+    f.write("\nNo Genres + liked: {:.4f}".format(mean(nnl)))
+    f.write("\nGenres + Not liked: {:.4f}".format(mean(ngn)))
+    f.write("\nNo Genres + Not liked: {:.4f}".format(mean(nnn)))
+
 
 
 #%%
