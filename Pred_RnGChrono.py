@@ -164,7 +164,7 @@ elif checkpoint1['criterion'] == 'BCE':
 
 
 # CHRONO EVALUATION
-
+# If one model (with and without genres)
 if args.M2_path == 'none':
     
     # MAke predictions
@@ -196,7 +196,8 @@ if args.M2_path == 'none':
     print("ReDial NDCG with {:.2f} and without {:.2f}".format(avrg_d1, avrg_d0))
 
 
-else: 
+# If two models
+else:   
     
     # Load Model 2
     print('\n******* Loading Model 2 *******')      

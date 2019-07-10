@@ -69,43 +69,57 @@ if args.seed:
 
 
 ########  MODEL  ########
+  
     
-    
-# Organize args layers 
-if args.layer2 == 0:
-    layers = [nb_movies, args.layer1]
-else: 
-    layers = [nb_movies, args.layer1, args.layer2]
-
-
-# Create a new model    
+######## CREATE MODEL
 if args.preModel == 'none':     
-    print('******* Creating NEW Model *******')      
-    # Create basic model
+    print('******* Creating NEW Model *******')           
+    
+    # Organize args layers 
+    if args.layer2 == 0:
+        layers = [nb_movies, args.layer1]
+    else: 
+        layers = [nb_movies, args.layer1, args.layer2]
+
+    # Model
     model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type=args.activations, \
                                                     is_constrained=False, dp_drop_prob=0.0, \
                                                     last_layer_activations=False,\
                                                     lla = args.last_layer_activation).to(args.DEVICE)
     model = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
-# Load an existing model
+ 
+    # Criterion
+    if args.criterion == 'BCEWLL':
+        criterion = torch.nn.BCEWithLogitsLoss(reduction='none')
+    elif args.criterion == 'BCE':
+        criterion = torch.nn.BCELoss(reduction='none')
+
+
+######## LOAD EXISTING MODEL
 else:
-    print('******* Load EXISTING Model *******')      
-    model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type=args.activations, \
+    print('******* Load EXISTING Model *******')   
+    
+    # Model
+    checkpoint = torch.load(args.preModel, map_location=args.DEVICE)
+    model_base = AutoEncoders.AsymmetricAutoEncoder(checkpoint['layers'], \
+                                                    nl_type=checkpoint['activations'], \
                                                     is_constrained=False, dp_drop_prob=0.0, \
                                                     last_layer_activations=False, \
-                                                    lla = args.last_layer_activation).to(args.DEVICE)
-    model = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
-    checkpoint = torch.load(args.preModel, map_location=args.DEVICE)
+                                                    lla = checkpoint['lla']).to(args.DEVICE)
+    model = AutoEncoders.GenresWrapperChrono(model_base, checkpoint['g_type']).to(args.DEVICE)
     model.load_state_dict(checkpoint['state_dict'])
+    
+    #Criterion
+    if checkpoint['criterion'] == 'BCEWLL':
+        criterion = torch.nn.BCEWithLogitsLoss(reduction='none')
+    elif checkpoint['criterion'] == 'BCE':
+        criterion = torch.nn.BCELoss(reduction='none')
+
 
 
 optimizer = optim.Adam(model.parameters(), lr = args.lr, weight_decay=0.0)
 
 
-if args.criterion == 'BCEWLL':
-    criterion = torch.nn.BCEWithLogitsLoss(reduction='none')
-elif args.criterion == 'BCE':
-    criterion = torch.nn.BCELoss(reduction='none')
 
 
 
