@@ -14,11 +14,9 @@ Predictions with models of type Ratings and Genres with Chronological Data
 ########  IMPORTS  ########
 
 
-import argparse
 import sys
 import json
 import torch
-from torch import optim
 import numpy as np
 from statistics import mean
 import matplotlib.pyplot as plt
@@ -139,19 +137,27 @@ else:
 
 # Load Model 1
     print('******* Loading Model 1 *******')      
-    model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type=args.activations, \
-                                                    is_constrained=False, dp_drop_prob=0.0, \
-                                                    last_layer_activations=False, \
-                                                    lla = args.last_layer_activation).to(args.DEVICE)
-    model1 = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
-    checkpoint = torch.load(args.M1_path, map_location=args.DEVICE)
-    model1.load_state_dict(checkpoint['state_dict'])
+#    model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type=args.activations, \
+#                                                    is_constrained=False, dp_drop_prob=0.0, \
+#                                                    last_layer_activations=False, \
+#                                                    lla = args.last_layer_activation).to(args.DEVICE)
+#    model1 = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
+#    checkpoint = torch.load(args.M1_path, map_location=args.DEVICE)
+#    model1.load_state_dict(checkpoint['state_dict'])
 
+checkpoint1 = torch.load(args.M1_path, map_location=args.DEVICE)
+model_base1 = AutoEncoders.AsymmetricAutoEncoder(checkpoint1['layers'], \
+                                                 nl_type=checkpoint1['activations'], \
+                                                 is_constrained=False, dp_drop_prob=0.0, \
+                                                 last_layer_activations=False, \
+                                                 lla = checkpoint1['lla']).to(args.DEVICE)
+model1 = AutoEncoders.GenresWrapperChrono(model_base1, checkpoint1['g_type']).to(args.DEVICE)
+model1.load_state_dict(checkpoint1['state_dict'])
 
-if args.criterion == 'BCEWLL':
-    criterion = torch.nn.BCEWithLogitsLoss(reduction='none')
-elif args.criterion == 'BCE':
-    criterion = torch.nn.BCELoss(reduction='none')
+if checkpoint1['criterion'] == 'BCEWLL':
+    criterion1 = torch.nn.BCEWithLogitsLoss(reduction='none')
+elif checkpoint1['criterion'] == 'BCE':
+    criterion1 = torch.nn.BCELoss(reduction='none')
 
 
 
@@ -159,20 +165,19 @@ elif args.criterion == 'BCE':
 
 # CHRONO EVALUATION
 
-print("\n\n\n\nEvaluating prediction Chronological...")
-
 if args.M2_path == 'none':
- 
+    
+    # MAke predictions
+    print("\n\nPrediction Chronological...")
     l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
-         Utils.EvalPredictionRnGChrono(valid_g_chrono_loader, model1, criterion, \
+         Utils.EvalPredictionRnGChrono(valid_g_chrono_loader, model1, criterion1, \
                                        True, args.completionPredChrono, args.topx)
                                  #without_genres is True because only one model
     
     
+    # Print results
     print("\n  ====> RESULTS <==== \n")
-    print("Global avrg pred error with {:.4f} and without {:.4f}".format(l1, l0))
-    
-    
+    print("Global avrg pred error with {:.4f} and without {:.4f}".format(l1, l0)) 
     print("\n  ==> BY Nb of mentions, on to be mentionned Liked <== \n")
     
     avrg_e1, avrg_e0 = Utils.ChronoPlot(e1, e0, 'Avrg pred error')
@@ -194,30 +199,38 @@ if args.M2_path == 'none':
 else: 
     
     # Load Model 2
-    print('******* Loading Model 2 *******')      
-    model_base = AutoEncoders.AsymmetricAutoEncoder(layers, nl_type=args.activations, \
-                                                    is_constrained=False, dp_drop_prob=0.0, \
-                                                    last_layer_activations=False, \
-                                                    lla = args.last_layer_activation).to(args.DEVICE)
-    model2 = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
-    checkpoint = torch.load(args.M2_path, map_location=args.DEVICE)
-    model2.load_state_dict(checkpoint['state_dict'])
+    print('\n******* Loading Model 2 *******')      
+    checkpoint2 = torch.load(args.M2_path, map_location=args.DEVICE)
+    model_base2 = AutoEncoders.AsymmetricAutoEncoder(checkpoint2['layers'], \
+                                                     nl_type=checkpoint2['activations'], \
+                                                     is_constrained=False, dp_drop_prob=0.0, \
+                                                     last_layer_activations=False, \
+                                                     lla = checkpoint2['lla']).to(args.DEVICE)
+    model2 = AutoEncoders.GenresWrapperChrono(model_base2, checkpoint2['g_type']).to(args.DEVICE)
+    model2.load_state_dict(checkpoint2['state_dict'])
     
+    if checkpoint2['criterion'] == 'BCEWLL':
+        criterion2 = torch.nn.BCEWithLogitsLoss(reduction='none')
+    elif checkpoint2['criterion'] == 'BCE':
+        criterion2 = torch.nn.BCELoss(reduction='none')
+       
+     
+    # Make predictions    
+    print("\n\nPrediction Chronological Model1...")
     l1, _, e1, _, a1, _, mr1, _, r1, _, d1, _ = \
-         Utils.EvalPredictionRnGChrono(valid_chrono_loader, model1, criterion, \
+         Utils.EvalPredictionRnGChrono(valid_chrono_loader, model1, criterion1, \
                                        False, args.completionPredChrono, args.topx)
                              # without_genres False because don't do the no genres pred
-                             
+    print("Prediction Chronological Model2...")                             
     l2, _, e2, _, a2, _, mr2, _, r2, _, d2, _ = \
-         Utils.EvalPredictionRnGChrono(valid_chrono_loader, model2, criterion, \
+         Utils.EvalPredictionRnGChrono(valid_chrono_loader, model2, criterion2, \
                                        False, args.completionPredChrono, args.topx)
                              # without_genres False because don't do the no genres pred
 
 
+    # Print results
     print("\n  ====> RESULTS <==== \n")
     print("Global avrg pred error with {:.4f} and without {:.4f}".format(l1, l2))
-    
-    
     print("\n  ==> BY Nb of mentions, on to be mentionned Liked <== \n")
     
     avrg_e1, avrg_e2 = Utils.ChronoPlot(e1, e2, 'Avrg pred error', args.M1_label, args.M2_label)
