@@ -3,3 +3,5 @@
 /.DS_Store
 /Data/MLRnGChronoTRAIN.json
 /Data/.DS_Store
+SB*
+slurm*
