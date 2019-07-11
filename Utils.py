@@ -400,6 +400,11 @@ class RnGChronoDataset(data.Dataset):
             ind_to_take = torch.randperm(len(l_inputs))[:p]
             l_inputs = torch.IntTensor(l_inputs)
             l_inputs = l_inputs[ind_to_take]
+            # Same for targets 
+            p = torch.randint(1, max_input, (1,)).type(torch.uint8)  
+            ind_to_take = torch.randperm(len(l_inputs))[:p]
+            l_targets = torch.IntTensor(l_targets)
+            l_targets = l_targets[ind_to_take]        
         
         # Inputs
         for uid, rating in l_inputs:
