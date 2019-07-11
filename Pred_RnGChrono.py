@@ -150,13 +150,13 @@ model_base1 = AutoEncoders.AsymmetricAutoEncoder(checkpoint1['layers'], \
                                                  nl_type=checkpoint1['activations'], \
                                                  is_constrained=False, dp_drop_prob=0.0, \
                                                  last_layer_activations=False, \
-                                                 lla = checkpoint1['lla']).to(args.DEVICE)
+                                                 lla = checkpoint1['last_layer_activation']).to(args.DEVICE)
 model1 = AutoEncoders.GenresWrapperChrono(model_base1, checkpoint1['g_type']).to(args.DEVICE)
 model1.load_state_dict(checkpoint1['state_dict'])
 
-if checkpoint1['criterion'] == 'BCEWLL':
+if checkpoint1['loss_fct'] == 'BCEWLL':
     criterion1 = torch.nn.BCEWithLogitsLoss(reduction='none')
-elif checkpoint1['criterion'] == 'BCE':
+elif checkpoint1['loss_fct'] == 'BCE':
     criterion1 = torch.nn.BCELoss(reduction='none')
 
 
@@ -206,13 +206,13 @@ else:
                                                      nl_type=checkpoint2['activations'], \
                                                      is_constrained=False, dp_drop_prob=0.0, \
                                                      last_layer_activations=False, \
-                                                     lla = checkpoint2['lla']).to(args.DEVICE)
+                                                     lla = checkpoint2['last_layer_activation']).to(args.DEVICE)
     model2 = AutoEncoders.GenresWrapperChrono(model_base2, checkpoint2['g_type']).to(args.DEVICE)
     model2.load_state_dict(checkpoint2['state_dict'])
     
-    if checkpoint2['criterion'] == 'BCEWLL':
+    if checkpoint2['loss_fct'] == 'BCEWLL':
         criterion2 = torch.nn.BCEWithLogitsLoss(reduction='none')
-    elif checkpoint2['criterion'] == 'BCE':
+    elif checkpoint2['loss_fct'] == 'BCE':
         criterion2 = torch.nn.BCELoss(reduction='none')
        
      

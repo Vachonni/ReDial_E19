@@ -382,7 +382,8 @@ print("No Genres + Not liked: {:.4f}".format(mean(nnn)))
 # Now printing results to .txt file:
 with open('./Results/'+args.id+'.txt', 'w') as f:
     
-    f.write("Avrg Prediction Error on Liked: {:.4f}".format(mean(lgl+lnl)))
+    f.write(str(sys.argv))
+    f.write("\n\nAvrg Prediction Error on Liked: {:.4f}".format(mean(lgl+lnl)))
     f.write("\nAvrg Prediction Error on Not Liked: {:.4f}".format(mean(lgn+lnn)))
     
     f.write('\n\n\n\nRANKS (avrg)\n')
