@@ -164,15 +164,16 @@ elif checkpoint1['loss_fct'] == 'BCE':
 
 
 # CHRONO EVALUATION
-# If one model (with and without genres)
+# If one model (do with and without genres)
 if args.M2_path == 'none':
     
     # MAke predictions
     print("\n\nPrediction Chronological...")
     l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
          Utils.EvalPredictionRnGChrono(valid_g_chrono_loader, model1, criterion1, \
-                                       True, args.completionPredChrono, args.topx)
-                                 #without_genres is True because only one model
+                                       True, args.pred_not_liked, \
+                                       args.completionPredChrono, args.topx)
+                    #without_genres is True because only one model, so do without genres part
     
     
     # Print results
@@ -241,12 +242,14 @@ else:
     print("\n\nPrediction Chronological Model1...")
     l1, _, e1, _, a1, _, mr1, _, r1, _, d1, _ = \
          Utils.EvalPredictionRnGChrono(valid_chrono_loader, model1, criterion1, \
-                                       False, args.completionPredChrono, args.topx)
+                                       False, args.pred_not_liked, \
+                                       args.completionPredChrono, args.topx)
                              # without_genres False because don't do the no genres pred
     print("Prediction Chronological Model2...")                             
     l2, _, e2, _, a2, _, mr2, _, r2, _, d2, _ = \
          Utils.EvalPredictionRnGChrono(valid_chrono_loader, model2, criterion2, \
-                                       False, args.completionPredChrono, args.topx)
+                                       False, args.pred_not_liked, \
+                                       args.completionPredChrono, args.topx)
                              # without_genres False because don't do the no genres pred
 
 

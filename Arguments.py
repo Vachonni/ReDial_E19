@@ -66,7 +66,8 @@ parser.add_argument('--EARLY', default=False, action='store_true', \
 # ...for Pred file
 parser.add_argument('--completionPredChrono', type=float, metavar='', default=100, \
                     help='% of data used for prediction')
-
+parser.add_argument('--pred_not_liked', default=False, action='store_true', \
+                    help='If arg added, PredChrono will be on not liked movies only')
 
 
 # Model

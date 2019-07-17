@@ -848,7 +848,9 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
 
 
 
-def EvalPredictionRnGChrono(valid_loader, model, criterion, without_genres, completion, topx=100):
+
+def EvalPredictionRnGChrono(valid_loader, model, criterion, without_genres, pred_not_liked,\
+                            completion, topx=100):
     """
     Prediction on targets = to be mentionned movies...
     
@@ -907,20 +909,30 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, without_genres, comp
     
             # NRR & NDCG
             # Need to evaluate each samples seperately, since diff number of targets
-            # For ReDial Chrono Dataset
+            # For each sample in the batch
 #            for i, sample in enumerate(pred[:,Settings.l_ReDUiD]):
-            for i, sample in enumerate(pred):
+            for i in range(len(pred)):
+                
+                
+                # Prediction on DISLIKED targets
+                if pred_not_liked:
+                    l_or_n_targets = masks[1][i] - targets[i]
+                # ...or on LIKED targets
+                else:
+                    l_or_n_targets = targets[i]
+                    
+                    
+                # Insure their is at least one target movie 
+                # (if not, sample not considered)
+                if l_or_n_targets.sum() == 0: continue
             
-                # Insure their is at least one target movie rated 1
-                # (if all rated 0, sample not considered)
-                if targets[i].sum() == 0: continue
                 
                 # Get error on pred ratings
-                error = ((criterion(pred[i], targets[i]) * masks[1][i]).sum() / masks[1][i].sum()).item()
+                error = ((criterion(pred[i], l_or_n_targets) * masks[1][i]).sum() / masks[1][i].sum()).item()
                 # ... get Ranks for targets (not masks[1] because only care about liked movies)
-                rk, avrg_rk, mrr, rr, ndcg = Ranks(sample, \
-                                                  pred[i][targets[i].nonzero().flatten().tolist()],\
-                                                  topx)                
+                rk, avrg_rk, mrr, rr, ndcg = Ranks(pred[i], \
+                                                  pred[i][l_or_n_targets.nonzero().flatten().tolist()],\
+                                                  topx)  
                 # Get the number of inputs mentionned before prediction
                 qt_mentionned_before = masks[0][i].sum(dtype=torch.uint8).item()
                 
@@ -963,19 +975,29 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, without_genres, comp
         
                 # NRR & NDCG
                 # Need to evaluate each samples seperately, since diff number of targets
-                # For ReDial Chrono Dataset
+                # For each sample in the batch
     #            for i, sample in enumerate(pred[:,Settings.l_ReDUiD]):
-                for i, sample in enumerate(pred):
+                for i in range(len(pred)):
                     
-                    # Insure their is at least one target movie rated 1
-                    # (if all rated 0, sample not considered)
-                    if targets[i].sum() == 0: continue
+                    
+                    # Prediction on DISLIKED targets
+                    if pred_not_liked:
+                        l_or_n_targets = masks[1][i] - targets[i]
+                    # ...or on LIKED targets
+                    else:
+                        l_or_n_targets = targets[i]
+        
+        
+                    # Insure their is at least one target movie 
+                    # (if not, sample not considered)
+                    if l_or_n_targets.sum() == 0: continue
                 
+            
                     # Get error on pred ratings
-                    error = ((criterion(pred[i], targets[i]) * masks[1][i]).sum() / masks[1][i].sum()).item()         
+                    error = ((criterion(pred[i], l_or_n_targets) * masks[1][i]).sum() / masks[1][i].sum()).item()         
                     # ... get Ranks for targets (not masks[1] because only care about liked movies)
-                    rk, avrg_rk, mrr, rr, ndcg = Ranks(sample, \
-                                                      pred[i][targets[i].nonzero().flatten().tolist()],\
+                    rk, avrg_rk, mrr, rr, ndcg = Ranks(pred[i], \
+                                                      pred[i][l_or_n_targets.nonzero().flatten().tolist()],\
                                                       topx)
                     # Get the number of inputs mentionned before prediction
                     qt_mentionned_before = masks[0][i].sum(dtype=torch.uint8).item()
