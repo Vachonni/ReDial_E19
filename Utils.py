@@ -921,7 +921,7 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, without_genres, comp
                 rk, avrg_rk, mrr, rr, ndcg = Ranks(sample, \
                                                   pred[i][targets[i].nonzero().flatten().tolist()],\
                                                   topx)                
-                # Get the number of inputs mentionned before genres
+                # Get the number of inputs mentionned before prediction
                 qt_mentionned_before = masks[0][i].sum(dtype=torch.uint8).item()
                 
                 # Add Ranks results to appropriate dict
@@ -977,7 +977,7 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, without_genres, comp
                     rk, avrg_rk, mrr, rr, ndcg = Ranks(sample, \
                                                       pred[i][targets[i].nonzero().flatten().tolist()],\
                                                       topx)
-                    # Get the number of inputs mentionned before genres
+                    # Get the number of inputs mentionned before prediction
                     qt_mentionned_before = masks[0][i].sum(dtype=torch.uint8).item()
                     
                     # Add Ranks results to appropriate dict
@@ -1231,14 +1231,14 @@ def ChronoPlot(d1, d0, title, label1='with genres', label2='without'):
         d1x.append(k)
         d1y.append(mean(v))
         d1mean += v
-        
+
     for k, v in sorted(d0.items()):
         d0x.append(k)
         d0y.append(mean(v))
         d0mean += v
     
     plt.plot(d1x, d1y, label=label1)
-    plt.plot(d0x, d0y, label=label2)
+    plt.plot(d0x, d0y, label=label2)  
     plt.title(title, fontweight="bold")
     plt.xlabel('Nb of mentionned movies before prediction')
     plt.legend()

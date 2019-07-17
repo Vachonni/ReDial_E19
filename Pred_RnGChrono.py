@@ -180,6 +180,27 @@ if args.M2_path == 'none':
     print("Global avrg pred error with {:.4f} and without {:.4f}".format(l1, l0)) 
     print("\n  ==> BY Nb of mentions, on to be mentionned Liked <== \n")
     
+    
+    
+    
+    
+    histo1 = []
+    histo0 = []
+    for k, v in sorted(e1.items()):
+        histo1 += [k for i in v]
+          
+    for k, v in sorted(e0.items()):
+        histo0 += [k for i in v]
+    
+    plt.hist(histo1, len(e1), alpha=0.3)
+    plt.hist(histo0, len(e0), alpha=0.3)    
+    plt.xlabel('Nb of mentionned movies before prediction')
+    plt.legend()
+    plt.show()
+    
+    
+    
+    
     avrg_e1, avrg_e0 = Utils.ChronoPlot(e1, e0, 'Avrg pred error')
     print("ReDial liked avrg pred error with {:.4f} and without {:.4f}".format(avrg_e1, avrg_e0))
     
@@ -233,6 +254,27 @@ else:
     print("\n  ====> RESULTS <==== \n")
     print("Global avrg pred error with {:.4f} and without {:.4f}".format(l1, l2))
     print("\n  ==> BY Nb of mentions, on to be mentionned Liked <== \n")
+    
+    
+    
+    
+    
+    histo1 = []
+    histo0 = []
+    for k, v in sorted(e1.items()):
+        histo1 += [k for i in v]
+          
+    for k, v in sorted(e2.items()):
+        histo0 += [k for i in v]
+    
+    plt.hist(histo1, len(e1), alpha=0.3)
+    plt.hist(histo0, len(e2), alpha=0.3)    
+    plt.xlabel('Nb of mentionned movies before prediction')
+    plt.legend()
+    plt.show()
+    
+    
+    
     
     avrg_e1, avrg_e2 = Utils.ChronoPlot(e1, e2, 'Avrg pred error', args.M1_label, args.M2_label)
     print("ReDial liked avrg pred error {} {:.4f} and {} {:.4f}"\
