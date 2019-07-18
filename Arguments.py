@@ -141,6 +141,15 @@ if args.loss_fct == 'BCE':
 if args.loss_fct == 'BCEWLL':
     assert args.last_layer_activation == 'none',"Last layer activation must be 'none' with BCEWLL"
 
+if args.no_data_merge:
+    assert args.completionPred != 0, "Can't ask for Pred Reconstruction when data not merged"
+    assert args.completionPredEpoch != 0, "Can't ask for Pred ReconstructionEpoch when data not merged"
+if not args.no_data_merge: 
+    assert args.completionPredChrono != 0, "Can't ask for PredChrono when data is merged"
+    
+    
+    
+
 # Pourcentage
 assert 0 <= args.completionTrain <=100,'completionTrain should be in [0,100]'
 assert 0 <= args.completionPred <=100,'completionPred should be in [0,100]'
