@@ -205,16 +205,16 @@ if args.M2_path == 'none':
     print("ReDial liked avrg pred error with {:.4f} and without {:.4f}".format(avrg_e1, avrg_e0))
     
     avrg_a1, avrg_a0 = Utils.ChronoPlot(a1, a0, 'Avrg_rank')
-    print("ReDial liked avrg ranks with {:.2f} and without {:.2f}".format(avrg_a1, avrg_a0))
+    print("ReDial liked avrg ranks with {:.0f} and without {:.0f}".format(avrg_a1, avrg_a0))
     
     avrg_mr1, avrg_mr0 = Utils.ChronoPlot(mr1, mr0, 'MMRR')
-    print("ReDial MMRR with {:.2f} and without {:.2f}".format(avrg_mr1, avrg_mr0))
+    print("ReDial MMRR with {:.4f} and without {:.4f}".format(avrg_mr1, avrg_mr0))
     
     avrg_r1, avrg_r0 = Utils.ChronoPlot(r1, r0, 'MRR')
-    print("ReDial MRR with {:.2f} and without {:.2f}".format(avrg_r1, avrg_r0))
+    print("ReDial MRR with {:.4f} and without {:.4f}".format(avrg_r1, avrg_r0))
     
     avrg_d1, avrg_d0 = Utils.ChronoPlot(d1, d0, 'NDCG')
-    print("ReDial NDCG with {:.2f} and without {:.2f}".format(avrg_d1, avrg_d0))
+    print("ReDial NDCG with {:.4f} and without {:.4f}".format(avrg_d1, avrg_d0))
 
 
 # If two models
@@ -283,16 +283,16 @@ else:
           .format(args.M1_label,avrg_e1, args.M2_label, avrg_e2))
     
     avrg_a1, avrg_a2 = Utils.ChronoPlot(a1, a2, 'Avrg_rank', args.M1_label, args.M2_label)
-    print("ReDial liked avrg ranks with {:.2f} and without {:.2f}".format(avrg_a1, avrg_a2))
+    print("ReDial liked avrg ranks with {:.0f} and without {:.0f}".format(avrg_a1, avrg_a2))
     
     avrg_mr1, avrg_mr2 = Utils.ChronoPlot(mr1, mr2, 'MMRR', args.M1_label, args.M2_label)
-    print("ReDial MMRR with {:.2f} and without {:.2f}".format(avrg_mr1, avrg_mr2))
+    print("ReDial MMRR with {:.4f} and without {:.4f}".format(avrg_mr1, avrg_mr2))
     
     avrg_r1, avrg_r2 = Utils.ChronoPlot(r1, r2, 'MRR', args.M1_label, args.M2_label)
-    print("ReDial MRR with {:.2f} and without {:.2f}".format(avrg_r1, avrg_r2))
+    print("ReDial MRR with {:.4f} and without {:.4f}".format(avrg_r1, avrg_r2))
     
     avrg_d1, avrg_d2 = Utils.ChronoPlot(d1, d2, 'NDCG', args.M1_label, args.M2_label)
-    print("ReDial NDCG with {:.2f} and without {:.2f}".format(avrg_d1, avrg_d2))
+    print("ReDial NDCG with {:.4f} and without {:.4f}".format(avrg_d1, avrg_d2))
 
 
 
