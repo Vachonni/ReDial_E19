@@ -461,7 +461,7 @@ TRAINING AND EVALUATION
 
 
 
-def TrainReconstruction(train_loader, model, criterion, optimizer, disliked, weights_factor, completion):
+def TrainReconstruction(train_loader, model, criterion, optimizer, zero12, weights_factor, completion):
     model.train()
     train_loss = 0
     nb_batch = len(train_loader) * completion / 100
@@ -502,7 +502,7 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, disliked, wei
         optimizer.zero_grad()   
         
         
-        if disliked:
+        if zero12:
             inputs[0] = inputs[0] + masks[0]
             
         pred = model(inputs)
@@ -554,7 +554,7 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, disliked, wei
 
 
 
-def EvalReconstruction(valid_loader, model, criterion, disliked, completion):
+def EvalReconstruction(valid_loader, model, criterion, zero12, completion):
     model.eval()
     eval_loss = 0
     nb_batch = len(valid_loader) * completion / 100
@@ -574,7 +574,7 @@ def EvalReconstruction(valid_loader, model, criterion, disliked, completion):
                 print('Batch {:4d} out of {:4.1f}.    Reconstruction Loss on targets: {:.4f}'\
                       .format(batch_idx, nb_batch, eval_loss/(batch_idx+1)))  
     
-            if disliked:
+            if zero12:
                 inputs[0] = inputs[0] + masks[0]        
             
             pred = model(inputs)  
