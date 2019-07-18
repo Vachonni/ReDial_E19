@@ -835,13 +835,13 @@ def EvalPredictionGenresRaw(loader, model, criterion, zero12, completion):
                         l_rr_nl.append(rr)
                         l_ndcg_nl.append(ndcg)
                     # with genres and DISliked (gn case) 
-                    if inputs[1][0][0] != 1 and r_liked:
+                    if inputs[1][0][0] != 1 and not r_liked:
                         l_loss_gn.append(error.item())
                         l_avrg_rank_gn.append(avrg_rank)
                         l_rr_gn.append(rr)
                         l_ndcg_gn.append(ndcg)
                     # with NO genres and DISliked (nn case) 
-                    if inputs[1][0][0] == 1 and r_liked:
+                    if inputs[1][0][0] == 1 and not r_liked:
                         l_loss_nn.append(error.item())
                         l_avrg_rank_nn.append(avrg_rank)
                         l_rr_nn.append(rr)
@@ -864,8 +864,8 @@ def EvalPredictionGenresRaw(loader, model, criterion, zero12, completion):
 
 
 
-def EvalPredictionRnGChrono(valid_loader, model, criterion, without_genres, pred_not_liked,\
-                            completion, topx=100):
+def EvalPredictionRnGChrono(valid_loader, model, criterion, zero12, without_genres, \
+                            pred_not_liked, completion, topx=100):
     """
     Prediction on targets = to be mentionned movies...
     
@@ -903,6 +903,9 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, without_genres, pred
                 print('Batch {} out of {}.  Loss:{}'\
                       .format(batch_idx, nb_batch, eval_loss_with_genres/(batch_idx+1)))
              
+            # Making inputs 0 = not seen, 1 = not liked and 2 = liked    
+            if zero12:
+                inputs[0] = inputs[0] + masks[0]
             
     # WITH GENRES
             # Make a pred
