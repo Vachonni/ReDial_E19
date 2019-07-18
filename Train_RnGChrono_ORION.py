@@ -273,7 +273,8 @@ for epoch in range(args.epoch):
         
         print('\n\nMaking predictions...\n')
         lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
-             Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.completionPredEpoch)
+             Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.zero12, \
+                                           args.completionPredEpoch)
          
         l_loss_epoch.append((mean(lgl), mean(lnl), mean(lgn), mean(lnn)))
         Utils.EpochPlot(l_loss_epoch, 'Avrg error by epoch, PredRaw')
@@ -337,7 +338,8 @@ for epoch in range(args.epoch):
 if args.completionPred != args.completionPredEpoch:
     print('\n\nMaking final predicitons...\n')
     lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
-             Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.completionPred)
+             Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.zero12, \
+                                           args.completionPred)
 
 
 print("\n\n\n\n\n  ====> RESULTS <==== \n\n")

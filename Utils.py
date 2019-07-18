@@ -501,14 +501,13 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, zero12, weigh
         # re-initialize the gradient computation
         optimizer.zero_grad()   
         
-        
+        # Making inputs 0 = not seen, 1 = not liked and 2 = liked
         if zero12:
             inputs[0] = inputs[0] + masks[0]
             
         pred = model(inputs)
 
             
-        
         
         
         """ To look into pred values evolution during training"""
@@ -573,7 +572,8 @@ def EvalReconstruction(valid_loader, model, criterion, zero12, completion):
             if batch_idx % 100 == 0: 
                 print('Batch {:4d} out of {:4.1f}.    Reconstruction Loss on targets: {:.4f}'\
                       .format(batch_idx, nb_batch, eval_loss/(batch_idx+1)))  
-    
+            
+            # Making inputs 0 = not seen, 1 = not liked and 2 = liked
             if zero12:
                 inputs[0] = inputs[0] + masks[0]        
             
@@ -737,7 +737,7 @@ def EvalReconstruction(valid_loader, model, criterion, zero12, completion):
 
 
 
-def EvalPredictionGenresRaw(loader, model, criterion, completion):
+def EvalPredictionGenresRaw(loader, model, criterion, zero12, completion):
     """
     Same as EvalPredictionGenres, but values returned are complete (not their mean)
     """
@@ -776,7 +776,11 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
               
             # Print Update
             if batch_idx % 1000 == 0:
-                print('Batch {} out of {}.'.format(batch_idx, nb_batch))     
+                print('Batch {} out of {}.'.format(batch_idx, nb_batch))   
+                
+            # Making inputs 0 = not seen, 1 = not liked and 2 = liked    
+            if zero12:
+                inputs[0] = inputs[0] + masks[0]
 
            
             count_pred = 0
@@ -812,26 +816,32 @@ def EvalPredictionGenresRaw(loader, model, criterion, completion):
 #                        print('\n\n** DIFFERENT RANKS **',ranks_old[0,0], ranks[0,0].long(),'\n\n')
                     """ """
                  #   print("Value of rating (r) is:", r)
+                 
+                    # Manage value of r (rating) according to zero12
+                    r_liked = False
+                    if zero12 and r == 2: r_liked = True
+                    if not zero12 and r == 1: r_liked = True
+                    
                     # with genres and liked (gl case) 
-                    if inputs[1][0][0] != 1 and r == 1.0:
+                    if inputs[1][0][0] != 1 and r_liked:
                         l_loss_gl.append(error.item())
                         l_avrg_rank_gl.append(avrg_rank)
                         l_rr_gl.append(rr)
                         l_ndcg_gl.append(ndcg)
                     # with NO genres and liked (nl case) 
-                    if inputs[1][0][0] == 1 and r == 1.0:
+                    if inputs[1][0][0] == 1 and r_liked:
                         l_loss_nl.append(error.item())
                         l_avrg_rank_nl.append(avrg_rank)
                         l_rr_nl.append(rr)
                         l_ndcg_nl.append(ndcg)
                     # with genres and DISliked (gn case) 
-                    if inputs[1][0][0] != 1 and r == 0.0:
+                    if inputs[1][0][0] != 1 and r_liked:
                         l_loss_gn.append(error.item())
                         l_avrg_rank_gn.append(avrg_rank)
                         l_rr_gn.append(rr)
                         l_ndcg_gn.append(ndcg)
                     # with NO genres and DISliked (nn case) 
-                    if inputs[1][0][0] == 1 and r == 0.0:
+                    if inputs[1][0][0] == 1 and r_liked:
                         l_loss_nn.append(error.item())
                         l_avrg_rank_nn.append(avrg_rank)
                         l_rr_nn.append(rr)
