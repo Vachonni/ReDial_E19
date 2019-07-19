@@ -332,81 +332,84 @@ for epoch in range(args.epoch):
 
 
 #%%
-######## FINAL PREDICITON  ########
 
-# If different qt of data for final and by epoch, recalculate
-if args.completionPred != args.completionPredEpoch:
-    print('\n\nMaking final predicitons...\n')
-    lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
-             Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.zero12, \
-                                           args.completionPred)
+if args.completionPred != 0:
 
-
-print("\n\n\n\n\n  ====> RESULTS <==== \n\n")
-
-if len(train_losses) - train_losses.index(min(train_losses)) > patience:
-    train_err = round(train_losses[-patience].item(), 4)
-else: 
-    train_err = round(train_losses[-1].item(), 4)
-print("Best Reconstruction Loss TRAIN: {}".format(train_err))
-
-if len(valid_losses) - valid_losses.index(min(valid_losses)) > patience:
-    valid_err = round(valid_losses[-(patience+1)].item(), 4)
-else: 
-    valid_err = round(valid_losses[-1].item(), 4)
-print("Best Reconstruction Loss VALID: {}".format(valid_err))
-
-print("\nAvrg Prediction Error on Liked: {:.4f}".format(mean(lgl+lnl)))
-print("Avrg Prediction Error on Not Liked: {:.4f}".format(mean(lgn+lnn)))
-
-print('\n\n\nRANKS (avrg)\n')
-print("Avrg liked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agl+anl), \
-      mean(agl+anl)/nb_movies*100))
-print("Avrg disliked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agn+ann), \
-      mean(agn+ann)/nb_movies*100))
-print('-----')
-print("Genres + liked: {:.0f}".format(mean(agl)))
-print("No Genres + liked: {:.0f}".format(mean(anl)))
-print("Genres + Not liked: {:.0f}".format(mean(agn)))
-print("No Genres + Not liked: {:.0f}".format(mean(ann)))
-
-
-print('\n\n\nNDCG (avrg)\n')
-print("Liked: {:.4f}".format(mean(ngl+nnl)))
-print("Not liked: {:.4f}".format(mean(ngn+nnn)))
-print('-----')
-print("Genres + liked: {:.4f}".format(mean(ngl)))
-print("No Genres + liked: {:.4f}".format(mean(nnl)))
-print("Genres + Not liked: {:.4f}".format(mean(ngn)))
-print("No Genres + Not liked: {:.4f}".format(mean(nnn)))
-
-
-# Now printing results to .txt file:
-with open('./Results/'+args.id+'.txt', 'w') as f:
+    ######## FINAL PREDICITON  ########
     
-    f.write(str(sys.argv))
-    f.write("\n\nAvrg Prediction Error on Liked: {:.4f}".format(mean(lgl+lnl)))
-    f.write("\nAvrg Prediction Error on Not Liked: {:.4f}".format(mean(lgn+lnn)))
+    # If different qt of data for final and by epoch, recalculate
+    if args.completionPred != args.completionPredEpoch:
+        print('\n\nMaking final predicitons...\n')
+        lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
+                 Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.zero12, \
+                                               args.completionPred)
     
-    f.write('\n\n\n\nRANKS (avrg)\n')
-    f.write("\nAvrg liked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agl+anl), \
+    
+    print("\n\n\n\n\n  ====> RESULTS <==== \n\n")
+    
+    if len(train_losses) - train_losses.index(min(train_losses)) > patience:
+        train_err = round(train_losses[-patience].item(), 4)
+    else: 
+        train_err = round(train_losses[-1].item(), 4)
+    print("Best Reconstruction Loss TRAIN: {}".format(train_err))
+    
+    if len(valid_losses) - valid_losses.index(min(valid_losses)) > patience:
+        valid_err = round(valid_losses[-(patience+1)].item(), 4)
+    else: 
+        valid_err = round(valid_losses[-1].item(), 4)
+    print("Best Reconstruction Loss VALID: {}".format(valid_err))
+    
+    print("\nAvrg Prediction Error on Liked: {:.4f}".format(mean(lgl+lnl)))
+    print("Avrg Prediction Error on Not Liked: {:.4f}".format(mean(lgn+lnn)))
+    
+    print('\n\n\nRANKS (avrg)\n')
+    print("Avrg liked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agl+anl), \
           mean(agl+anl)/nb_movies*100))
-    f.write("\nAvrg disliked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agn+ann), \
+    print("Avrg disliked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agn+ann), \
           mean(agn+ann)/nb_movies*100))
-    f.write('\n-----')
-    f.write("\nGenres + liked: {:.0f}".format(mean(agl)))
-    f.write("\nNo Genres + liked: {:.0f}".format(mean(anl)))
-    f.write("\nGenres + Not liked: {:.0f}".format(mean(agn)))
-    f.write("\nNo Genres + Not liked: {:.0f}".format(mean(ann)))
+    print('-----')
+    print("Genres + liked: {:.0f}".format(mean(agl)))
+    print("No Genres + liked: {:.0f}".format(mean(anl)))
+    print("Genres + Not liked: {:.0f}".format(mean(agn)))
+    print("No Genres + Not liked: {:.0f}".format(mean(ann)))
     
-    f.write('\n\n\n\nNDCG (avrg)\n')
-    f.write("\nLiked: {:.4f}".format(mean(ngl+nnl)))
-    f.write("\nNot liked: {:.4f}".format(mean(ngn+nnn)))
-    f.write('\n-----')
-    f.write("\nGenres + liked: {:.4f}".format(mean(ngl)))
-    f.write("\nNo Genres + liked: {:.4f}".format(mean(nnl)))
-    f.write("\nGenres + Not liked: {:.4f}".format(mean(ngn)))
-    f.write("\nNo Genres + Not liked: {:.4f}".format(mean(nnn)))
+    
+    print('\n\n\nNDCG (avrg)\n')
+    print("Liked: {:.4f}".format(mean(ngl+nnl)))
+    print("Not liked: {:.4f}".format(mean(ngn+nnn)))
+    print('-----')
+    print("Genres + liked: {:.4f}".format(mean(ngl)))
+    print("No Genres + liked: {:.4f}".format(mean(nnl)))
+    print("Genres + Not liked: {:.4f}".format(mean(ngn)))
+    print("No Genres + Not liked: {:.4f}".format(mean(nnn)))
+    
+    
+    # Now printing results to .txt file:
+    with open('./Results/'+args.id+'.txt', 'w') as f:
+        
+        f.write(str(sys.argv))
+        f.write("\n\nAvrg Prediction Error on Liked: {:.4f}".format(mean(lgl+lnl)))
+        f.write("\nAvrg Prediction Error on Not Liked: {:.4f}".format(mean(lgn+lnn)))
+        
+        f.write('\n\n\n\nRANKS (avrg)\n')
+        f.write("\nAvrg liked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agl+anl), \
+              mean(agl+anl)/nb_movies*100))
+        f.write("\nAvrg disliked ranking: {:.0f}, which is in first {:.1f}%".format(mean(agn+ann), \
+              mean(agn+ann)/nb_movies*100))
+        f.write('\n-----')
+        f.write("\nGenres + liked: {:.0f}".format(mean(agl)))
+        f.write("\nNo Genres + liked: {:.0f}".format(mean(anl)))
+        f.write("\nGenres + Not liked: {:.0f}".format(mean(agn)))
+        f.write("\nNo Genres + Not liked: {:.0f}".format(mean(ann)))
+        
+        f.write('\n\n\n\nNDCG (avrg)\n')
+        f.write("\nLiked: {:.4f}".format(mean(ngl+nnl)))
+        f.write("\nNot liked: {:.4f}".format(mean(ngn+nnn)))
+        f.write('\n-----')
+        f.write("\nGenres + liked: {:.4f}".format(mean(ngl)))
+        f.write("\nNo Genres + liked: {:.4f}".format(mean(nnl)))
+        f.write("\nGenres + Not liked: {:.4f}".format(mean(ngn)))
+        f.write("\nNo Genres + Not liked: {:.4f}".format(mean(nnn)))
 
 
 
