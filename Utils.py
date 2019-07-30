@@ -15,7 +15,7 @@ from torch.utils import data
 import torch
 #import nltk
 import matplotlib.pyplot as plt
-from statistics import mean
+from statistics import mean, stdev
 
 
 #import Settings
@@ -1256,35 +1256,55 @@ def Ranks(all_values, values_to_rank, topx = 0):
 
 
     
-def ChronoPlot(d1, d0, title, label1='with genres', label2='without'):
+def ChronoPlot(l_d, title, l_label= ['withOUT genres', 'with genres']):
     """
-    Plot graph of 2 dict, doing mean of values
+    Plot graph of list ofdicts, doing mean of values for each key
     """
-    d1x = []
-    d1y = []
-    d1mean = []    # global mean
-    d0x = []
-    d0y = []
-    d0mean = []
+    dmean = []    # global mean to return
     
-    for k, v in sorted(d1.items()):
-        d1x.append(k)
-        d1y.append(mean(v))
-        d1mean += v
+#    d0x = []
+#    d0y = []
+#    d0err = []
+#    d0mean = []    # global mean to return
+    
+    # For each dictionary
+    for i in range(len(l_d)):
+        dx = []
+        dy = []
+        derr = []
+        dall = []
+        
+        # For each key
+        for k, v in sorted(l_d[i].items()):
+            if len(v) < 5:
+                continue
+            else:
+                dx.append(k)
+                dy.append(mean(v))
+                derr.append(stdev(v))
+                dall += v
 
-    for k, v in sorted(d0.items()):
-        d0x.append(k)
-        d0y.append(mean(v))
-        d0mean += v
+#    for k, v in sorted(d0.items()):
+#        if len(v) < 5:
+#            continue
+#        else:
+#            d0x.append(k)
+#            d0y.append(mean(v))
+#            d0err.append(stdev(v))
+#            d0mean += v
     
-    plt.plot(d1x, d1y, label=label1)
-    plt.plot(d0x, d0y, label=label2)  
+#    plt.plot(d1x, d1y, label=label1)
+#    plt.plot(d0x, d0y, label=label2)  
+        plt.errorbar(dx, dy, derr, elinewidth=0.5, label=l_label[i])
+        dmean.append(mean(dall))
+        
+        
     plt.title(title, fontweight="bold")
     plt.xlabel('Nb of mentionned movies before prediction')
     plt.legend()
     plt.show()
     
-    return mean(d1mean), mean(d0mean)
+    return dmean
     
     
     
