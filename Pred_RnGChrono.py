@@ -71,12 +71,12 @@ if args.seed:
 ######## LOAD DATA 
 # R (ratings) - Format [ [UserID, [movies uID], [ratings 0-1]] ]   
 print('******* Loading SAMPLES from *******', args.dataPATH + args.dataTrain)
-train_data = json.load(open(args.dataPATH + args.dataTrain))
+#train_data = json.load(open(args.dataPATH + args.dataTrain))
 valid_data = json.load(open(args.dataPATH + args.dataValid))
 # Use only samples where there is a genres mention
 valid_g_data = [[c,m,g,tbm] for c,m,g,tbm in valid_data if g != []]
 if args.DEBUG: 
-    train_data = train_data[:128]
+  #  train_data = train_data[:128]
     valid_data = valid_data[:128]
 
 # G (genres) - Format [ [UserID, [movies uID of genres mentionned]] ]    
@@ -91,12 +91,12 @@ popularity = torch.from_numpy(popularity).float()
 
 ######## CREATING DATASET ListRatingDataset 
 print('******* Creating torch datasets *******')
-train_dataset = Utils.RnGChronoDataset(train_data, dict_genresInter_idx_UiD, \
-                                       nb_movies, popularity, args.DEVICE, args.exclude_genres, \
-                                       args.no_data_merge, args.noiseTrain, args.top_cut)
-valid_dataset = Utils.RnGChronoDataset(valid_data, dict_genresInter_idx_UiD, \
-                                       nb_movies, popularity, args.DEVICE, args.exclude_genres, \
-                                       args.no_data_merge, args.noiseEval, args.top_cut)
+#train_dataset = Utils.RnGChronoDataset(train_data, dict_genresInter_idx_UiD, \
+#                                       nb_movies, popularity, args.DEVICE, args.exclude_genres, \
+#                                       args.no_data_merge, args.noiseTrain, args.top_cut)
+#valid_dataset = Utils.RnGChronoDataset(valid_data, dict_genresInter_idx_UiD, \
+#                                       nb_movies, popularity, args.DEVICE, args.exclude_genres, \
+#                                       args.no_data_merge, args.noiseEval, args.top_cut)
 # FOR CHRONO (hence no_data_merge is True). With genres mentions or not
 valid_chrono_dataset = Utils.RnGChronoDataset(valid_data, dict_genresInter_idx_UiD, \
                                          nb_movies, popularity, args.DEVICE, args.exclude_genres, \
@@ -112,10 +112,10 @@ print('******* Creating dataloaders *******\n\n')
 kwargs = {}
 if(args.DEVICE == "cuda"):
     kwargs = {'num_workers': 0, 'pin_memory': False}
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,\
-                                           shuffle=True, drop_last=True, **kwargs)
-valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch,\
-                                           shuffle=True, drop_last=True, **kwargs)    
+#train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,\
+#                                           shuffle=True, drop_last=True, **kwargs)
+#valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch,\
+#                                           shuffle=True, drop_last=True, **kwargs)    
 # For PredChrono
 valid_chrono_loader = torch.utils.data.DataLoader(valid_chrono_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
 valid_g_chrono_loader = torch.utils.data.DataLoader(valid_g_chrono_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
@@ -159,6 +159,9 @@ elif checkpoint1['loss_fct'] == 'BCE':
     criterion1 = torch.nn.BCELoss(reduction='none')
 
 
+# For print: Liked or not predictions 
+print_not_liked = ''
+if args.pred_not_liked: print_not_liked = 'NOT '
 
 
 
@@ -178,7 +181,7 @@ if args.M2_path == 'none':
     # Print results
     print("\n  ====> RESULTS <==== \n")
     print("Global avrg pred error with {:.4f} and without {:.4f}".format(l1, l0)) 
-    print("\n  ==> BY Nb of mentions, on to be mentionned Liked <== \n")
+    print("\n  ==> BY Nb of mentions, on to be mentionned <== \n")
     
     
     
@@ -199,22 +202,19 @@ if args.M2_path == 'none':
     plt.show()
     
     
-    
-    
-    avrg_e1, avrg_e0 = Utils.ChronoPlot(e1, e0, 'Avrg pred error')
-    print("ReDial liked avrg pred error with {:.4f} and without {:.4f}".format(avrg_e1, avrg_e0))
-    
-    avrg_a1, avrg_a0 = Utils.ChronoPlot(a1, a0, 'Avrg_rank')
-    print("ReDial liked avrg ranks with {:.0f} and without {:.0f}".format(avrg_a1, avrg_a0))
-    
-    avrg_mr1, avrg_mr0 = Utils.ChronoPlot(mr1, mr0, 'MMRR')
-    print("ReDial MMRR with {:.4f} and without {:.4f}".format(avrg_mr1, avrg_mr0))
-    
-    avrg_r1, avrg_r0 = Utils.ChronoPlot(r1, r0, 'MRR')
-    print("ReDial MRR with {:.4f} and without {:.4f}".format(avrg_r1, avrg_r0))
-    
-    avrg_d1, avrg_d0 = Utils.ChronoPlot(d1, d0, 'NDCG')
-    print("ReDial NDCG with {:.4f} and without {:.4f}".format(avrg_d1, avrg_d0))
+    # List of metrics to evaluate and graph
+    graphs_titles = ['Avrg Pred Error', 'MMRR','NDCG']  # 'Avrg Rank', 'MRR'
+    graphs_data = [[e0, e1], [mr0, mr1], [d0, d1]]  # [a0, a1], [r0, r1]
+    # Evaluate + graph
+    for i in range(len(graphs_titles)):
+        avrgs = Utils.ChronoPlot(graphs_data[i], graphs_titles[i])
+        print(graphs_titles[i]+" on {}liked ReDial movies: {}={:.4f} and {}={:.4f}"\
+              .format(print_not_liked, \
+                      'withOUT genres', avrgs[0], \
+                      'with genres', avrgs[1]))
+        
+
+
 
 
 # If two models
@@ -239,11 +239,12 @@ else:
      
     # Make predictions    
     print("\n\nPrediction Chronological Model1...")
-    l1, _, e1, _, a1, _, mr1, _, r1, _, d1, _ = \
+    # Make prediction with and without genres in input
+    l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
          Utils.EvalPredictionRnGChrono(valid_chrono_loader, model1, criterion1, \
-                                       args.zero12, False, args.pred_not_liked, \
+                                       args.zero12, True, args.pred_not_liked, \
                                        args.completionPredChrono, args.topx)
-                             # without_genres False because don't do the "without genres" pred
+                             # without_genres True because do the "without genres" pred
     print("Prediction Chronological Model2...")                             
     l2, _, e2, _, a2, _, mr2, _, r2, _, d2, _ = \
          Utils.EvalPredictionRnGChrono(valid_chrono_loader, model2, criterion2, \
@@ -254,8 +255,8 @@ else:
 
     # Print results
     print("\n  ====> RESULTS <==== \n")
-    print("Global avrg pred error with {:.4f} and without {:.4f}".format(l1, l2))
-    print("\n  ==> BY Nb of mentions, on to be mentionned Liked <== \n")
+  #  print("Global avrg pred error with {:.4f} and without {:.4f}".format(l1, l2))
+    print("\n  ==> BY Nb of mentions, on to be mentionned <== \n")
     
     
     
@@ -276,23 +277,21 @@ else:
     plt.show()
     
     
+    # List of metrics to evaluate and graph
+    graphs_titles = ['Avrg Pred Error', 'MMRR', 'NDCG']  # 'Avrg Rank', 'MRR'
+    graphs_data = [[e0, e1, e2], [mr0, mr1, mr2], [d0, d1, d2]]  # [a0, a1, a2], [r0, r1, r2]
+    # Evaluate + graph
+    for i in range(len(graphs_titles)):
+        avrgs = Utils.ChronoPlot(graphs_data[i], graphs_titles[i] , \
+                                 [args.M1_label+'(out)', args.M1_label, args.M2_label])
+        print(graphs_titles[i]+" on {}liked ReDial movies: {}={:.4f}, {}={:.4f} and {}={:.4f}"\
+              .format(print_not_liked, \
+                      args.M1_label+'(out)', avrgs[0], \
+                      args.M1_label, avrgs[1], \
+                      args.M2_label, avrgs[2]))
+        
     
-    
-    avrg_e1, avrg_e2 = Utils.ChronoPlot(e1, e2, 'Avrg pred error', args.M1_label, args.M2_label)
-    print("ReDial liked avrg pred error {} {:.4f} and {} {:.4f}"\
-          .format(args.M1_label,avrg_e1, args.M2_label, avrg_e2))
-    
-    avrg_a1, avrg_a2 = Utils.ChronoPlot(a1, a2, 'Avrg_rank', args.M1_label, args.M2_label)
-    print("ReDial liked avrg ranks with {:.0f} and without {:.0f}".format(avrg_a1, avrg_a2))
-    
-    avrg_mr1, avrg_mr2 = Utils.ChronoPlot(mr1, mr2, 'MMRR', args.M1_label, args.M2_label)
-    print("ReDial MMRR with {:.4f} and without {:.4f}".format(avrg_mr1, avrg_mr2))
-    
-    avrg_r1, avrg_r2 = Utils.ChronoPlot(r1, r2, 'MRR', args.M1_label, args.M2_label)
-    print("ReDial MRR with {:.4f} and without {:.4f}".format(avrg_r1, avrg_r2))
-    
-    avrg_d1, avrg_d2 = Utils.ChronoPlot(d1, d2, 'NDCG', args.M1_label, args.M2_label)
-    print("ReDial NDCG with {:.4f} and without {:.4f}".format(avrg_d1, avrg_d2))
+
 
 
 
