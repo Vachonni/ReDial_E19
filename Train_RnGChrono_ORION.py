@@ -238,7 +238,7 @@ for epoch in range(args.epoch):
     train_loss = Utils.TrainReconstruction(train_loader, model, criterion, optimizer, \
                                            args.zero12, args.weights, args.completionTrain)
     eval_loss = Utils.EvalReconstruction(valid_loader, model, criterion, \
-                                         args.zero12, args.completionTrain)
+                                         args.zero12, 100)
     
     
     """ """
@@ -259,7 +259,7 @@ for epoch in range(args.epoch):
     valid_losses.append(eval_loss)
     losses = [train_losses, valid_losses]  
     
-    print('\nEND EPOCH {:3d} \nTrain Reconstruction loss on targets: {:.4f}\
+    print('\nEND EPOCH {:3d} \nTrain Reconstruction Loss on targets: {:.4f}\
           \nValid Reconstruction Loss on tragets: {:.4f}' \
           .format(epoch, train_loss, eval_loss))
     print("Parameter g - Avrg: {:.4f} Min: {:.4f} Max: {:.4f}" \
