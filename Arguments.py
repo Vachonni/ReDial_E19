@@ -23,9 +23,9 @@ parser.add_argument('--id', type=str, metavar='', required=True, help='ID of exp
 # Data
 parser.add_argument('--dataPATH', type=str, metavar='', default='./Data/', \
                     help='Path to datasets to train on')
-parser.add_argument('--dataTrain', type=str, metavar='', default='ReDialRnGChronoTRAIN.json', \
+parser.add_argument('--dataTrain', type=str, metavar='', default='', \
                     help='File name of Dataset to train on')
-parser.add_argument('--dataValid', type=str, metavar='', default='ReDialRnGChronoVALID.json', \
+parser.add_argument('--dataValid', type=str, metavar='', default='', \
                     help='File name of Dataset to for validation')
 parser.add_argument('--exclude_genres', default=False, action='store_true', \
                     help='If arg added, genres not used in input (Dataset part empty for genres)')
@@ -90,13 +90,13 @@ parser.add_argument('--preModel', type=str, metavar='', default='none', \
                     include a GenresWrapper of same type')
 # ...for Pred file
 parser.add_argument('--M1_path', type=str, metavar='', default='none', \
-                    help='Path to a Model 1')
+                    help='Path to a Model 1. Will pred with + without genres')
 parser.add_argument('--M1_label', type=str, metavar='', default='none', \
                     help='Label for Model 1')
 parser.add_argument('--M2_path', type=str, metavar='', default='none', \
                     help='Path to a Model 2')
 parser.add_argument('--M2_label', type=str, metavar='', default='none', \
-                    help='Label to a Model 1')
+                    help='Label to a Model 2')
 
 
 # Genres 
@@ -144,7 +144,9 @@ if args.loss_fct == 'BCEWLL':
 if args.no_data_merge:
     assert args.completionPred == 0, "Can't ask for Pred Reconstruction when data not merged"
     assert args.completionPredEpoch == 0, "Can't ask for Pred ReconstructionEpoch when data not merged"
-if not args.no_data_merge: 
+# If not for Prediction file and no data merge
+# (when pred file (no train data), don't raise error because case handle in code)  
+if not args.no_data_merge and args.dataTrain != '': 
     assert args.completionPredChrono == 0, "Can't ask for PredChrono when data is merged"
     
     
