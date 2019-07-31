@@ -1,6 +1,33 @@
-algorithms: 
-    BayesianOptimizer:
-        n_initial_points: 10
-        strategy: cl_min
-        acq_func: gp_hedge
-        alpha: 1.0e-10
+
+# This overwrites the setup in ~/.config
+
+database:
+  type: 'pickleddb'
+  host: '/lustre04/scratch/vachonni/ReDial_E19/OrionResults.pkl'
+
+
+
+
+# Asha algorithm (https://orion.readthedocs.io/en/latest/user/algorithms.html#asha)
+
+#algorithms:
+#   asha:
+#      seed: null
+#      max_resources: 100
+#      grace_period: 1
+#      reduction_factor: 4
+#      num_brackets: 1
+
+
+
+
+
+
+
+# Old Bayes algorithm
+#algorithms: 
+#    BayesianOptimizer:
+#        n_initial_points: 10
+#        strategy: cl_min
+#        acq_func: gp_hedge
+#        alpha: 1.0e-10
