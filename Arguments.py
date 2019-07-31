@@ -52,7 +52,7 @@ parser.add_argument('--zero12', default=False, action='store_true', \
 parser.add_argument('--weights', type=float, metavar='', default=1, \
                     help='Weights multiplying the errors on ratings of 0 (underrepresented) \
                     during training.  1 -> no weights')
-parser.add_argument('--patience', type=int, metavar='', default=1, \
+parser.add_argument('--patience', type=int, metavar='', default=2, \
                     help='number of epoch to wait without improvement in valid_loss before ending training')
 
 parser.add_argument('--completionTrain', type=float, metavar='', default=100, \
