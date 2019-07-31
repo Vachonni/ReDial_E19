@@ -1,9 +1,12 @@
 
 # This overwrites the setup in ~/.config
 
-database:
-  type: 'pickleddb'
-  host: '/lustre04/scratch/vachonni/ReDial_E19/OrionResults.pkl'
+
+
+
+#database:
+#  type: 'pickleddb'
+#  host: '/Users/nicholas/ReDial_E19/Results/OrionResults.pkl'
 
 
 
