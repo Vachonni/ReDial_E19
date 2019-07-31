@@ -62,7 +62,8 @@ if args.seed:
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
 
-
+# Global variable for runOrion.py (NDCG)
+orion_objective = -1
 
 
 
@@ -70,7 +71,7 @@ if args.seed:
 
 ######## LOAD DATA 
 # R (ratings) - Format [ [UserID, [movies uID], [ratings 0-1]] ]   
-print('******* Loading SAMPLES from *******', args.dataPATH + args.dataTrain)
+print('******* Loading SAMPLES from *******', args.dataPATH + args.dataValid)
 #train_data = json.load(open(args.dataPATH + args.dataTrain))
 valid_data = json.load(open(args.dataPATH + args.dataValid))
 # Use only samples where there is a genres mention
@@ -165,11 +166,15 @@ if args.pred_not_liked: print_not_liked = 'NOT '
 
 
 
-# CHRONO EVALUATION
+
+
+########  CHRONO EVALUATION  ########
+
+
 # If one model (do with and without genres)
 if args.M2_path == 'none':
     
-    # Make predictions
+    # Make predictions (returns dictionaries)
     print("\n\nPrediction Chronological...")
     l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
          Utils.EvalPredictionRnGChrono(valid_g_chrono_loader, model1, criterion1, \
@@ -212,6 +217,8 @@ if args.M2_path == 'none':
               .format(print_not_liked, \
                       'withOUT genres', avrgs[0], \
                       'with genres', avrgs[1]))
+        if graphs_titles[i] == 'NDCG':
+            orion_objective = avrgs[1]
         
 
 
@@ -237,7 +244,7 @@ else:
         criterion2 = torch.nn.BCELoss(reduction='none')
        
      
-    # Make predictions    
+    # Make predictions (returns dictionaries)    
     print("\n\nPrediction Chronological Model1...")
     # Make prediction with and without genres in input
     l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
