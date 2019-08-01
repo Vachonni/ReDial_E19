@@ -1256,7 +1256,7 @@ def Ranks(all_values, values_to_rank, topx = 0):
 
 
     
-def ChronoPlot(l_d, title, l_label= ['withOUT genres', 'with genres']):
+def ChronoPlot(l_d, title, PATH, l_label= ['withOUT genres', 'with genres']):
     """
     Plot graph of list ofdicts, doing mean of values for each key
     """
@@ -1295,14 +1295,16 @@ def ChronoPlot(l_d, title, l_label= ['withOUT genres', 'with genres']):
     
 #    plt.plot(d1x, d1y, label=label1)
 #    plt.plot(d0x, d0y, label=label2)  
-    #    plt.errorbar(dx, dy, derr, elinewidth=0.5, label=l_label[i])
+        plt.errorbar(dx, dy, derr, elinewidth=0.5, label=l_label[i])
         dmean.append(mean(dall))
         
         
-#    plt.title(title, fontweight="bold")
-#    plt.xlabel('Nb of mentionned movies before prediction')
-#    plt.legend()
-#    plt.show()
+    plt.title(title, fontweight="bold")
+    plt.xlabel('Nb of mentionned movies before prediction')
+    plt.legend()
+  # plt.show()
+    plt.savefig(PATH+title+'.pdf')
+    plt.close()
     
     return dmean
     
