@@ -47,12 +47,12 @@ parser.add_argument('--noiseTrain', default=False, action='store_true', \
 parser.add_argument('--noiseEval', default=False, action='store_true', \
                     help='If arg added, mimics ReDial inputs by allowing only from 1 to 7 (random)\
                     ratings as inputs.')
-parser.add_argument('--zero12', default=False, action='store_true', \
-                    help='If arg added, ratings and masks are added, meaning we now have \
-                    for inputs: 0 = not seen, 1 = not liked and 2 = liked. Targets same.')
-parser.add_argument('--zero11', default=False, action='store_true', \
-                    help='If arg added, 2*ratings and masks are added, meaning we now have \
-                    for inputs: 0 = not seen, -1 = not liked and 1 = liked. Targets same.')
+parser.add_argument('--zero1', type=int, metavar='', default=0, choices=[0,1,2], \
+                    help='Targets stay same.   If 0, ratings stay 0 1. \
+                    If 1, 2*ratings - masks, meaning we now have: \
+                    0 = not seen, -1 = not liked and 1 = liked. \
+                    If 2, ratings + masks, meaning we now have: \
+                    0 = not seen, 1 = not liked and 2 = liked.')
 parser.add_argument('--weights', type=float, metavar='', default=1, \
                     help='Weights multiplying the errors on ratings of 0 (underrepresented) \
                     during training.  1 -> no weights')
@@ -124,8 +124,7 @@ parser.add_argument('--ORION_NOpreTrain', type=int, metavar='', default=-1, choi
                     help='Pretraining on ML or not, will be transformed in runOrion.py. ')
 parser.add_argument('--ORION_g_type', type=int, metavar='', default=-1, choices=[-1,0,1,2], \
                     help='g_type, will be transformed in runOrion.py (only 3 last types)')
-parser.add_argument('--ORION_zero', type=int, metavar='', default=-1, choices=[-1,0,1,2], \
-                    help='zero12 or zero11, will be transformed in runOrion.py')
+
 
 
 # Others

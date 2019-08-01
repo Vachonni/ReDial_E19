@@ -235,9 +235,9 @@ def main(args):
         print('\n\n\n\n     ==> Epoch:', epoch, '\n')
         
         train_loss = Utils.TrainReconstruction(train_loader, model, criterion, optimizer, \
-                                               args.zero12, args.weights, args.completionTrain)
+                                               args.zero1, args.weights, args.completionTrain)
         eval_loss = Utils.EvalReconstruction(valid_loader, model, criterion, \
-                                             args.zero12, 100)
+                                             args.zero1, 100)
         
 
 
@@ -275,7 +275,7 @@ def main(args):
             
             print('\n\nMaking predictions...\n')
             lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
-                 Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.zero12, \
+                 Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.zero1, \
                                                args.completionPredEpoch)
              
             l_loss_epoch.append((mean(lgl), mean(lnl), mean(lgn), mean(lnn)))
@@ -345,7 +345,7 @@ def main(args):
         if args.completionPred != args.completionPredEpoch:
             print('\n\nMaking final predicitons...\n')
             lgl, lnl, lgn, lnn, agl, anl, agn, ann, rgl, rnl, rgn, rnn, ngl, nnl, ngn, nnn = \
-                     Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.zero12, \
+                     Utils.EvalPredictionGenresRaw(valid_bs1_loader, model, criterion, args.zero1, \
                                                    args.completionPred)
         
         

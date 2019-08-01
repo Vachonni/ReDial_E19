@@ -177,7 +177,7 @@ def main(args):
         print("\n\nPrediction Chronological...")
         l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
              Utils.EvalPredictionRnGChrono(valid_g_chrono_loader, model1, criterion1, \
-                                           args.zero12, True, args.pred_not_liked, \
+                                           args.zero1, True, args.pred_not_liked, \
                                            args.completionPredChrono, args.topx)
                         #without_genres is True because only one model, so do "without genres" pred
         
@@ -248,13 +248,13 @@ def main(args):
         # Make prediction with and without genres in input
         l1, l0, e1, e0, a1, a0, mr1, mr0, r1, r0, d1, d0 = \
              Utils.EvalPredictionRnGChrono(valid_chrono_loader, model1, criterion1, \
-                                           args.zero12, True, args.pred_not_liked, \
+                                           args.zero1, True, args.pred_not_liked, \
                                            args.completionPredChrono, args.topx)
                                  # without_genres True because do the "without genres" pred
         print("Prediction Chronological Model2...")                             
         l2, _, e2, _, a2, _, mr2, _, r2, _, d2, _ = \
              Utils.EvalPredictionRnGChrono(valid_chrono_loader, model2, criterion2, \
-                                           args.zero12, False, args.pred_not_liked, \
+                                           args.zero1, False, args.pred_not_liked, \
                                            args.completionPredChrono, args.topx)
                                  # without_genres False because don't do the "without genres" pred
     

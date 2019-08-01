@@ -461,7 +461,7 @@ TRAINING AND EVALUATION
 
 
 
-def TrainReconstruction(train_loader, model, criterion, optimizer, zero12, weights_factor, completion):
+def TrainReconstruction(train_loader, model, criterion, optimizer, zero1, weights_factor, completion):
     model.train()
     train_loss = 0
     nb_batch = len(train_loader) * completion / 100
@@ -500,10 +500,15 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, zero12, weigh
 
         # re-initialize the gradient computation
         optimizer.zero_grad()   
-        
+
+
+        # Making inputs 0 = not seen, -1 = not liked and 1 = liked
+        if zero1 == 1:
+            inputs[0] = 2*inputs[0] - masks[0]        
         # Making inputs 0 = not seen, 1 = not liked and 2 = liked
-        if zero12:
+        if zero1 == 2:
             inputs[0] = inputs[0] + masks[0]
+            
             
         pred = model(inputs)
 
@@ -553,7 +558,7 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, zero12, weigh
 
 
 
-def EvalReconstruction(valid_loader, model, criterion, zero12, completion):
+def EvalReconstruction(valid_loader, model, criterion, zero1, completion):
     model.eval()
     eval_loss = 0
     nb_batch = len(valid_loader) * completion / 100
@@ -572,10 +577,13 @@ def EvalReconstruction(valid_loader, model, criterion, zero12, completion):
             if batch_idx % 100 == 0: 
                 print('Batch {:4d} out of {:4.1f}.    Reconstruction Loss on targets: {:.4f}'\
                       .format(batch_idx, nb_batch, eval_loss/(batch_idx+1)))  
-            
+                   
+            # Making inputs 0 = not seen, -1 = not liked and 1 = liked
+            if zero1 == 1:
+                inputs[0] = 2*inputs[0] - masks[0]        
             # Making inputs 0 = not seen, 1 = not liked and 2 = liked
-            if zero12:
-                inputs[0] = inputs[0] + masks[0]        
+            if zero1 == 2:
+                inputs[0] = inputs[0] + masks[0]
             
             pred = model(inputs)  
             
@@ -737,7 +745,7 @@ def EvalReconstruction(valid_loader, model, criterion, zero12, completion):
 
 
 
-def EvalPredictionGenresRaw(loader, model, criterion, zero12, completion):
+def EvalPredictionGenresRaw(loader, model, criterion, zero1, completion):
     """
     Same as EvalPredictionGenres, but values returned are complete (not their mean)
     """
@@ -778,8 +786,11 @@ def EvalPredictionGenresRaw(loader, model, criterion, zero12, completion):
             if batch_idx % 1000 == 0:
                 print('Batch {} out of {}.'.format(batch_idx, nb_batch))   
                 
-            # Making inputs 0 = not seen, 1 = not liked and 2 = liked    
-            if zero12:
+            # Making inputs 0 = not seen, -1 = not liked and 1 = liked
+            if zero1 == 1:
+                inputs[0] = 2*inputs[0] - masks[0]        
+            # Making inputs 0 = not seen, 1 = not liked and 2 = liked
+            if zero1 == 2:
                 inputs[0] = inputs[0] + masks[0]
 
            
@@ -817,10 +828,11 @@ def EvalPredictionGenresRaw(loader, model, criterion, zero12, completion):
                     """ """
                  #   print("Value of rating (r) is:", r)
                  
-                    # Manage value of r (rating) according to zero12
+                    # Manage value of r (rating) according to zero1
                     r_liked = False
-                    if zero12 and r == 2: r_liked = True
-                    if not zero12 and r == 1: r_liked = True
+                    if zero1 == 0 and r == 1: r_liked = True
+                    if zero1 == 1 and r == 1: r_liked = True
+                    if zero1 == 2 and r == 2: r_liked = True
                     
                     # with genres and liked (gl case) 
                     if inputs[1][0][0] != 1 and r_liked:
@@ -864,7 +876,7 @@ def EvalPredictionGenresRaw(loader, model, criterion, zero12, completion):
 
 
 
-def EvalPredictionRnGChrono(valid_loader, model, criterion, zero12, without_genres, \
+def EvalPredictionRnGChrono(valid_loader, model, criterion, zero1, without_genres, \
                             pred_not_liked, completion, topx=100):
     """
     Prediction on targets = to be mentionned movies...
@@ -903,8 +915,11 @@ def EvalPredictionRnGChrono(valid_loader, model, criterion, zero12, without_genr
                 print('Batch {} out of {}.  Loss:{}'\
                       .format(batch_idx, nb_batch, eval_loss_with_genres/(batch_idx+1)))
              
-            # Making inputs 0 = not seen, 1 = not liked and 2 = liked    
-            if zero12:
+            # Making inputs 0 = not seen, -1 = not liked and 1 = liked
+            if zero1 == 1:
+                inputs[0] = 2*inputs[0] - masks[0]        
+            # Making inputs 0 = not seen, 1 = not liked and 2 = liked
+            if zero1 == 2:
                 inputs[0] = inputs[0] + masks[0]
             
     # WITH GENRES
