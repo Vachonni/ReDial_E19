@@ -61,8 +61,8 @@ def main(args):
             torch.backends.cudnn.benchmark = False
             torch.backends.cudnn.deterministic = True
     
-    # Global variable for runOrion.py (NDCG)
-    orion_objective = -1
+    # Global variable for runOrion.py (NDCGs for one model)
+    NDCGs_1model = -1
     
     
     
@@ -217,7 +217,7 @@ def main(args):
                           'withOUT genres', avrgs[0], \
                           'with genres', avrgs[1]))
             if graphs_titles[i] == 'NDCG':
-                orion_objective = -avrgs[1]
+                NDCGs_1model = avrgs
             
     
     
@@ -297,7 +297,7 @@ def main(args):
                           args.M2_label, avrgs[2]))
             
     
-    return orion_objective 
+    return NDCGs_1model 
 
 
 #%%

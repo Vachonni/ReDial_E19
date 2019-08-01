@@ -64,21 +64,21 @@ args.M1_path = args.id + 'model.pth'   # Will be the R_ (ReDial) model
 args.completionPredChrono = 100
 
 # Execute prediction on the ReDial model
-orion_objective = Pred_RnGChrono.main(args) 
-assert orion_objective != 1, "orion_objective not evaluated"
+NDCGs_1model = Pred_RnGChrono.main(args) 
+assert NDCGs_1model != -1, "Orion's objective not evaluated"
 
 
 
 # For Orion, print results (MongoDB,...)
 
 report_results([dict(
-    name='NDCG with genres (if model allows it)',
+    name='NDCG with genres',
     type='objective',
-    value=orion_objective),
-#    dict(
-#    name='valid_pred_rank_DISliked',
-#    type='constraint',
-#    value=pred_rank_disliked),
+    value=-NDCGs_1model[1]),
+    dict(
+    name='NDCG without genres',
+    type='constraint',
+    value=-NDCGs_1model[0]),
 #    dict(
 #    name='valid_pred_error',
 #    type='constraint',
