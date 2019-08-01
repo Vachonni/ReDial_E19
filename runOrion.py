@@ -94,6 +94,8 @@ else:
     # Execute training on ReDial
     Train_RnGChrono_ORION.main(args) 
 
+    # delete the ML_model (for space considerations)
+    os.remove(args.id + 'ML_model.pth')
 
 
 
