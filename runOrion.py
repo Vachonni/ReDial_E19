@@ -10,6 +10,9 @@ Hyper-parameter search with Orion for Train_RnGChrono and Pred_RnGChrono
 @author: nicholas
 """
 
+import os
+import json
+import sys
 # Get all arguemnts
 from Arguments import args 
 import Train_RnGChrono_ORION
@@ -19,9 +22,19 @@ import Pred_RnGChrono
 from orion.client import report_results
 
 
+# Making the --id a proper folder (need for Orion, adapted elsewhere)
+args.id += '/'      
+
+
+# Save all arguments values
+if not os.path.isdir(args.id): os.mkdir(args.id)
+with open(args.id+'arguments.json', 'w') as fp:
+    json.dump(vars(args), fp, sort_keys=True, indent=4)
+    fp.write('\n\n'+str(sys.argv))
+
+
 
 # Set args for pre-training on ML
-args.id += '/'      # Making the id a folder 
 args.dataTrain = 'MLRnGChronoTRAIN.json' 
 args.dataValid  = 'MLRnGChronoVALID.json' 
 args.noiseTrain = True
@@ -41,8 +54,7 @@ Train_RnGChrono_ORION.main(args)
 
 
 # Set args for training on ReDial after pre-training
-args.preModel = args.id + 'model.pth'
-args.id = args.id + 'R_'  # Saving the new model with R_ to id it as ReDial
+args.preModel = args.id + 'ML_model.pth'
 args.dataTrain = 'ReDialRnGChronoTRAIN.json' 
 args.dataValid  = 'ReDialRnGChronoVALID.json' 
 args.noiseTrain = False
@@ -58,14 +70,16 @@ Train_RnGChrono_ORION.main(args)
 
 
 
+
 # Set args for prediction of one model, 
 args.seed = True
-args.M1_path = args.id + 'model.pth'   # Will be the R_ (ReDial) model
+args.M1_path = args.id + 'Re_model.pth'   
 args.completionPredChrono = 100
 
 # Execute prediction on the ReDial model
 NDCGs_1model = Pred_RnGChrono.main(args) 
 assert NDCGs_1model != -1, "Orion's objective not evaluated"
+
 
 
 
