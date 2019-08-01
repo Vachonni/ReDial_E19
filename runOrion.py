@@ -27,8 +27,26 @@ from orion.client import report_results
 
 
 
+
+########  ARGUMENTS  ########
+
+
 # Making the --id a proper folder (need for Orion, adapted elsewhere)
 args.id += '/'      
+
+# Managing the lack og 'choice' in ORION
+if args.ORION_NOpreTrain == 1: args.NOpreTrain = True
+if args.ORION_g_type == 0: args.g_type = 'one'
+if args.ORION_g_type == 1: args.g_type = 'unit'
+if args.ORION_g_type == 2: args.g_type = 'genres'
+if args.ORION_zero == 1: args.zero11 = True
+if args.ORION_zero == 2: args.zero12 = True
+
+
+
+print(vars(args))
+
+
 
 
 # Save all arguments values
