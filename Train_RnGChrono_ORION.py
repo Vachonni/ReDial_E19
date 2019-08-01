@@ -13,7 +13,7 @@ Training AE Recommender
 
 ########  IMPORTS  ########
 
-
+import os
 import sys
 import json
 import torch
@@ -325,7 +325,9 @@ def main(args):
                     'loss_fct': loss_fct,
                     'g_type': g_type
                     }
-            torch.save(state, args.id+'model.pth')
+            if not os.path.isdir(args.id): os.mkdir(args.id)
+            # Save at directory + (ML or Re) + _model.pth
+            torch.save(state, args.id+args.dataTrain[0:2]+'_model.pth')
             print('......saved.')
             
             
