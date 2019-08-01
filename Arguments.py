@@ -111,12 +111,15 @@ parser.add_argument('--topx', type=int, metavar='', default=100, \
                     help='for NDCG mesure, size of top ranks considered')
 
 
+
+# Global (training(s) and prediction) with file runOrion.py
+parser.add_argument('--NOpreTrain', default=False, action='store_true', \
+                    help="If arg added, skips the pre-training on ML")
+
+
 # Others
 parser.add_argument('--seed', default=False, action='store_true', \
                     help="If arg added, random always give the same")
-
-parser.add_argument('--orion', default=False, action='store_true', \
-                    help="If arg added, run Orion - Hyper Parameter search")
 
 parser.add_argument('--DEVICE', type=str, metavar='', default='cuda', choices=['cuda', 'cpu'], \
                     help="Type of machine to run on")
