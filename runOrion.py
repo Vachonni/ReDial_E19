@@ -122,7 +122,10 @@ else:
 # Set args for prediction of one model, 
 args.seed = True
 args.M1_path = args.id + 'Re_model.pth'   
-args.completionPredChrono = 100
+if args.DEBUG:
+    args.completionPredChrono = 1
+else:
+    args.completionPredChrono = 100
 
 # Execute prediction on the ReDial model
 NDCGs_1model = Pred_RnGChrono.main(args) 
