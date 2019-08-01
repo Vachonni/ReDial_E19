@@ -10,6 +10,10 @@ Hyper-parameter search with Orion for Train_RnGChrono and Pred_RnGChrono
 @author: nicholas
 """
 
+
+########  IMPORTS  ########
+
+
 import os
 import json
 import sys
@@ -20,6 +24,7 @@ import Pred_RnGChrono
 
 # Get Orion
 from orion.client import report_results
+
 
 
 # Making the --id a proper folder (need for Orion, adapted elsewhere)
@@ -34,42 +39,67 @@ with open(args.id+'arguments.json', 'w') as fp:
 
 
 
-# Set args for pre-training on ML
-args.dataTrain = 'MLRnGChronoTRAIN.json' 
-args.dataValid  = 'MLRnGChronoVALID.json' 
-args.noiseTrain = True
-args.noiseEval = True
-args.completionTrain = 10 
-args.completionPred = 0
-args.completionPredEpoch = 0 
-args.activations = 'relu'
-args.last_layer_activation = 'softmax'
-args.loss_fct = 'BCE'
-args.seed = True
-
-# Execute the pre-trainig on ML 
-Train_RnGChrono_ORION.main(args) 
+########  TRAINING  ########
 
 
+# NO Pretraing on ML    
+if args.NOpreTrain: 
+    args.dataTrain = 'ReDialRnGChronoTRAIN.json' 
+    args.dataValid  = 'ReDialRnGChronoVALID.json' 
+    args.noiseTrain = False
+    args.noiseEval = False
+    args.completionTrain = 100 
+    args.completionPred = 0
+    args.completionPredEpoch = 0 
+    args.activations = 'relu'
+    args.last_layer_activation = 'softmax'
+    args.loss_fct = 'BCE'
+    args.seed = True 
+    
+    # Execute training on ReDial
+    Train_RnGChrono_ORION.main(args) 
+    
+    
+# Pretraing on ML    
+else:    
+    # Set args for pre-training on ML
+    args.dataTrain = 'MLRnGChronoTRAIN.json' 
+    args.dataValid  = 'MLRnGChronoVALID.json' 
+    args.noiseTrain = True
+    args.noiseEval = True
+    args.completionTrain = 10 
+    args.completionPred = 0
+    args.completionPredEpoch = 0 
+    args.activations = 'relu'
+    args.last_layer_activation = 'softmax'
+    args.loss_fct = 'BCE'
+    args.seed = True
+    
+    # Execute the pre-trainig on ML 
+    Train_RnGChrono_ORION.main(args) 
+    
+    
+    # Set args for training on ReDial after pre-training
+    args.preModel = args.id + 'ML_model.pth'
+    args.dataTrain = 'ReDialRnGChronoTRAIN.json' 
+    args.dataValid  = 'ReDialRnGChronoVALID.json' 
+    args.noiseTrain = False
+    args.noiseEval = False
+    args.completionTrain = 100 
+    args.completionPred = 0 
+    args.completionPredEpoch = 0 
+    args.seed = True
+    args.no_data_merge = True
+    
+    # Execute training on ReDial
+    Train_RnGChrono_ORION.main(args) 
 
 
-# Set args for training on ReDial after pre-training
-args.preModel = args.id + 'ML_model.pth'
-args.dataTrain = 'ReDialRnGChronoTRAIN.json' 
-args.dataValid  = 'ReDialRnGChronoVALID.json' 
-args.noiseTrain = False
-args.noiseEval = False
-args.completionTrain = 100 
-args.completionPred = 0 
-args.completionPredEpoch = 0 
-args.seed = True
-args.no_data_merge = True
-
-# Execute training on ReDial
-Train_RnGChrono_ORION.main(args) 
 
 
 
+########  PREDICTION  ########
+    
 
 # Set args for prediction of one model, 
 args.seed = True
@@ -81,6 +111,11 @@ NDCGs_1model = Pred_RnGChrono.main(args)
 assert NDCGs_1model != -1, "Orion's objective not evaluated"
 
 
+
+
+
+
+########  ORION  ########
 
 
 # For Orion, print results (MongoDB,...)
