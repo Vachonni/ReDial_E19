@@ -17,7 +17,8 @@ parser = argparse.ArgumentParser(description='Train an AutoEncoder Recommender a
 
 
 
-parser.add_argument('--id', type=str, metavar='', required=True, help='ID of experience. Will be used when saving file.')
+parser.add_argument('--id', type=str, metavar='', required=True, \
+                    help='Path to directory used when saving files.')
 
 
 # Data
@@ -49,6 +50,9 @@ parser.add_argument('--noiseEval', default=False, action='store_true', \
 parser.add_argument('--zero12', default=False, action='store_true', \
                     help='If arg added, ratings and masks are added, meaning we now have \
                     for inputs: 0 = not seen, 1 = not liked and 2 = liked. Targets same.')
+parser.add_argument('--zero11', default=False, action='store_true', \
+                    help='If arg added, 2*ratings and masks are added, meaning we now have \
+                    for inputs: 0 = not seen, -1 = not liked and 1 = liked. Targets same.')
 parser.add_argument('--weights', type=float, metavar='', default=1, \
                     help='Weights multiplying the errors on ratings of 0 (underrepresented) \
                     during training.  1 -> no weights')
@@ -115,6 +119,13 @@ parser.add_argument('--topx', type=int, metavar='', default=100, \
 # Global (training(s) and prediction) with file runOrion.py
 parser.add_argument('--NOpreTrain', default=False, action='store_true', \
                     help="If arg added, skips the pre-training on ML")
+# Args to cover for Orion's lack of 'choice' option
+parser.add_argument('--ORION_NOpreTrain', type=int, metavar='', default=-1, choices=[-1,0,1], \
+                    help='Pretraining on ML or not, will be transformed in runOrion.py. ')
+parser.add_argument('--ORION_g_type', type=int, metavar='', default=-1, choices=[-1,0,1,2], \
+                    help='g_type, will be transformed in runOrion.py (only 3 last types)')
+parser.add_argument('--ORION_zero', type=int, metavar='', default=-1, choices=[-1,0,1,2], \
+                    help='zero12 or zero11, will be transformed in runOrion.py')
 
 
 # Others
