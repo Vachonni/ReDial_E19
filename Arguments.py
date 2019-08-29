@@ -33,7 +33,8 @@ parser.add_argument('--exclude_genres', default=False, action='store_true', \
 parser.add_argument('--no_data_merge', default=False, action='store_true', \
                     help='If arg added, mentionned and to be mentionned data are NOT added. \
                     Used in Dataset. ALWAYS True when for PredChrono.')
-
+parser.add_argument('--no_popularity', default=False, action='store_true', \
+                    help='If arg added, popularity is not added to the genres.')
 
 # Training
 parser.add_argument('--lr', type=float, metavar='', default=0.001, help='Learning rate')

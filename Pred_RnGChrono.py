@@ -84,9 +84,11 @@ def main(args):
     dict_genresInter_idx_UiD = json.load(open(args.dataPATH + args.genresDict))
     
     # Getting the popularity vector 
-    print('** Including popularity')
-    popularity = np.load(args.dataPATH + 'popularity_vector.npy')
-    popularity = torch.from_numpy(popularity).float()
+    if not args.no_popularity:
+        print('** Including popularity')
+        popularity = np.load(args.dataPATH + 'popularity_vector.npy')
+        popularity = torch.from_numpy(popularity).float()
+    else: popularity = 1    
     
     
     ######## CREATING DATASET ListRatingDataset 

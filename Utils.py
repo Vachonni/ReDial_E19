@@ -432,12 +432,14 @@ class RnGChronoDataset(data.Dataset):
                     genres[uid] = 1.0
                     
                 """normalization and popularity"""
-                # Include popularity in genres
-                genres = genres * self.popularity
-                # Take top 100 movies
-                genres_cut = torch.zeros(self.nb_movies)
-                genres_cut[genres.topk(self.top_cut)[1]] = genres.topk(self.top_cut)[0]
-                genres = genres_cut  
+                # If we want popularity (i.e. args.no_popularity == True)
+                if self.popularity != 1:     
+                    # Include popularity in genres
+                    genres = genres * self.popularity
+                    # Take top 100 movies according to popularity
+                    genres_cut = torch.zeros(self.nb_movies)
+                    genres_cut[genres.topk(self.top_cut)[1]] = genres.topk(self.top_cut)[0]
+                    genres = genres_cut  
                 # Normalize vector
                 genres = torch.nn.functional.normalize(genres, dim=0)
         
