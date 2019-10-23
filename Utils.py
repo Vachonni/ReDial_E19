@@ -433,7 +433,7 @@ class RnGChronoDataset(data.Dataset):
                     
                 """normalization and popularity"""
                 # If we want popularity (i.e. args.no_popularity == True)
-                if self.popularity != 1:     
+                if not torch.equal(self.popularity, torch.ones(1)):     
                     # Include popularity in genres
                     genres = genres * self.popularity
                     # Take top 100 movies according to popularity
@@ -1313,6 +1313,7 @@ def ChronoPlot(l_d, title, PATH, l_label= ['withOUT genres', 'with genres']):
 #    plt.plot(d1x, d1y, label=label1)
 #    plt.plot(d0x, d0y, label=label2)  
         plt.errorbar(dx, dy, derr, elinewidth=0.5, label=l_label[i])
+        print('NDCG_CHRONO:', dy)
         dmean.append(mean(dall))
         
         
