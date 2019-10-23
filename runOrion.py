@@ -32,7 +32,11 @@ from orion.client import report_results
 
 
 # Making the --id a proper folder (need for Orion, adapted elsewhere)
-args.id += '/'      
+args.id += '/'   
+
+# Making the --dataPATH a proper folder (need for Orion, adapted elsewhere)
+if args.dataPATH[-1] != '/':
+    args.dataPATH += '/'     
 
 # Managing the lack og 'choice' in ORION
 if args.ORION_NOpreTrain == 1: args.NOpreTrain = True
