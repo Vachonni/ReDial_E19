@@ -54,9 +54,9 @@ parser.add_argument('--zero1', type=int, metavar='', default=0, choices=[0,1,2],
                     0 = not seen, -1 = not liked and 1 = liked. \
                     If 2, ratings + masks, meaning we now have: \
                     0 = not seen, 1 = not liked and 2 = liked.')
-parser.add_argument('--weights', type=float, metavar='', default=1, \
+parser.add_argument('--weights', type=float, metavar='', default=0, \
                     help='Weights multiplying the errors on ratings of 0 (underrepresented) \
-                    during training.  1 -> no weights')
+                    during training.  0 -> no weights, 5 -> 5 times the weight')
 parser.add_argument('--patience', type=int, metavar='', default=2, \
                     help='number of epoch to wait without improvement in valid_loss before ending training')
 
