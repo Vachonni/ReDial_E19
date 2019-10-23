@@ -490,8 +490,9 @@ def TrainReconstruction(train_loader, model, criterion, optimizer, zero1, weight
                   .format(batch_idx, nb_batch, train_loss/(batch_idx+1)))  
                 
         # Add weights on targets rated 0 because outnumbered by targets 1
-        weights = (masks[1] == 1) * (targets == 0) * weights_factor + \
-                  torch.ones_like(targets)
+        print()
+        weights = (masks[1] == 1).float() * (targets == 0).float() \
+                                * weights_factor + torch.ones_like(targets)
         criterion.weight = weights.float()
         
 
