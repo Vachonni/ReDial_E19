@@ -1317,7 +1317,8 @@ def ChronoPlot(l_d, title, PATH, l_label= ['withOUT genres', 'with genres']):
         print(title, ' ',l_label[i],' CHRONO VALUES:', dy)
         dmean.append(mean(dall))
         
-        
+    # ADDING BERT
+    plt.errorbar([0,1,2,3,4,5,6,7,8], [0.17700737618545836, 0.17762857142857144, 0.1619674355495251, 0.13827067669172932, 0.13785507246376813, 0.13879227053140097, 0.1363076923076923, 0.14, 0.1306], label='BERT')    
     plt.title(title, fontweight="bold")
     plt.xlabel('Nb of mentionned movies before prediction')
     plt.legend()
