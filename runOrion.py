@@ -31,13 +31,14 @@ from orion.client import report_results
 ########  ARGUMENTS  ########
 
 
-# Making the --id a proper folder (need for Orion, adapted elsewhere)
-args.id += '/'   
+# Making the --id the solving folder STRANGE
+# (need for Orion, from $SLURM_TMPDIR, adapted elsewhere)
+args.id = args.working_dir + '/Results/' + args.trial_id  
 
-# Making the --dataPATH a proper folder (need for Orion, adapted elsewhere)
-if args.dataPATH[-1] != '/':
-    args.dataPATH += '/'     
-print(args.dataPATH)
+# Making the --dataPATH 
+# (need for Orion, from $SLURM_TMPDIR, adapted elsewhere)
+args.dataPATH = args.working_dir + '/'     
+
 
 # Managing the lack og 'choice' in ORION
 if args.ORION_NOpreTrain == 1: args.NOpreTrain = True

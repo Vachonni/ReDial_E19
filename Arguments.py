@@ -16,10 +16,9 @@ import argparse
 parser = argparse.ArgumentParser(description='Train an AutoEncoder Recommender and Pred')
 
 
-
-parser.add_argument('--id', type=str, metavar='', required=True, \
+                    # Strange namoe for id, should be changed
+parser.add_argument('--id', type=str, metavar='', \
                     help='Path to directory used when saving files.')
-
 
 # Data
 parser.add_argument('--dataPATH', type=str, metavar='', default='./Data/', \
@@ -120,12 +119,17 @@ parser.add_argument('--topx', type=int, metavar='', default=100, \
 # Global (training(s) and prediction) with file runOrion.py
 parser.add_argument('--NOpreTrain', default=False, action='store_true', \
                     help="If arg added, skips the pre-training on ML")
-# Args to cover for Orion's lack of 'choice' option
+
+
+# Args to cover for ORION's (lack of 'choice' option or $SLURM_TMPDIR)
 parser.add_argument('--ORION_NOpreTrain', type=int, metavar='', default=-1, choices=[-1,0,1], \
                     help='Pretraining on ML or not, will be transformed in runOrion.py. ')
 parser.add_argument('--ORION_g_type', type=int, metavar='', default=-1, choices=[-1,0,1,2], \
                     help='g_type, will be transformed in runOrion.py (only 3 last types)')
-
+parser.add_argument('--trial_id', type=str, metavar='', \
+                    help='ORION - Unique trial experience. USed to reconstruc args.id.')
+parser.add_argument('--working_dir', type=str, metavar='', \
+                    help='ORION - Path to directory where experience is run.')
 
 
 # Others
