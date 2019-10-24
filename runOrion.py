@@ -55,6 +55,7 @@ print(vars(args))
 
 # Save all arguments values
 if not os.path.isdir(args.id): os.mkdir(args.id)
+print('passed')
 with open(args.id+'arguments.json', 'w') as fp:
     json.dump(vars(args), fp, sort_keys=True, indent=4)
     fp.write('\n\n'+str(sys.argv))
