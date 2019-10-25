@@ -31,7 +31,7 @@ from orion.client import report_results
 ########  ARGUMENTS  ########
 
 
-# Making the --id the solving folder STRANGE
+# Making the --id the log folder (this is a strage name, should be changed to args.logPATH)
 # (need for Orion, from $SLURM_TMPDIR, adapted elsewhere)
 args.id = args.working_dir + '/Results/' + args.trial_id + '/' 
 

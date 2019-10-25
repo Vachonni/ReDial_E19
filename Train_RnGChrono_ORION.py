@@ -178,8 +178,8 @@ def main(args):
         print('** Including popularity')
         popularity = np.load(args.dataPATH + 'popularity_vector.npy')
         popularity = torch.from_numpy(popularity).float()
-    else: popularity = 1
-    
+    else: popularity = torch.ones(1)
+        
     
     ######## CREATING DATASET ListRatingDataset 
     print('******* Creating torch datasets *******')

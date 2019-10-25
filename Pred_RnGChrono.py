@@ -88,7 +88,7 @@ def main(args):
         print('** Including popularity')
         popularity = np.load(args.dataPATH + 'popularity_vector.npy')
         popularity = torch.from_numpy(popularity).float()
-    else: popularity = 1    
+    else: popularity = torch.ones(1)
     
     
     ######## CREATING DATASET ListRatingDataset 
@@ -290,7 +290,7 @@ def main(args):
         graphs_data = [[e0, e1, e2], [mr0, mr1, mr2], [d0, d1, d2]]  # [a0, a1, a2], [r0, r1, r2]
         # Evaluate + graph
         for i in range(len(graphs_titles)):
-            avrgs = Utils.ChronoPlot(graphs_data[i], graphs_titles[i] , args.id\
+            avrgs = Utils.ChronoPlot(graphs_data[i], graphs_titles[i] , args.id, \
                                      [args.M1_label+'(out)', args.M1_label, args.M2_label])
             print(graphs_titles[i]+" on {}liked ReDial movies: {}={:.4f}, {}={:.4f} and {}={:.4f}"\
                   .format(print_not_liked, \
