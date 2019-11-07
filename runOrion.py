@@ -133,7 +133,8 @@ if args.DEBUG:
 else:
     args.completionPredChrono = 100
 
-# Execute prediction on the ReDial model
+# Execute prediction on the ReDial model 
+# (No need for args.no_data_merge, it's treated in Pred_RnGChrono.main)
 NDCGs_1model = Pred_RnGChrono.main(args) 
 assert NDCGs_1model != -1, "Orion's objective not evaluated"
 
