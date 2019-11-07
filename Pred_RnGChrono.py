@@ -75,6 +75,7 @@ print('******* Loading SAMPLES from *******', args.dataPATH + args.dataTrain)
 valid_data = json.load(open(args.dataPATH + args.dataValid))
 # Use only samples where there is a genres mention
 valid_g_data = [[c,m,g,tbm] for c,m,g,tbm in valid_data if g != []]
+
 if args.DEBUG: 
   #  train_data = train_data[:128]
     valid_data = valid_data[:128]
